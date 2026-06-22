@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neko Rogaru: Endless Tumble</title>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Font for cozy retro feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1512;
+            background-image: radial-gradient(#2d2119 20%, transparent 20%),
+                              radial-gradient(#2d2119 20%, transparent 20%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            font-family: 'Press Start 2P', monospace;
+            color: #f7e6d0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Cozy Arcade Cabinet Frame */
+        #cabinet {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 95vh;
+            max-height: 850px;
+            background: #3e281c;
+            border: 10px solid #23140b;
+            border-radius: 20px;
+            box-shadow: 0 20px 0 #120904, 0 30px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Wood Grain Side Accents */
+        #cabinet::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0; width: 15px;
+            background: repeating-linear-gradient(0deg, #503525, #503525 20px, #3c2518 20px, #3c2518 40px);
+            border-right: 4px solid #1c0e06;
+            z-index: 10;
+        }
+        #cabinet::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; width: 15px;
+            background: repeating-linear-gradient(0deg, #503525, #503525 20px, #3c2518 20px, #3c2518 40px);
+            border-left: 4px solid #1c0e06;
+            z-index: 10;
+        }
+
+        /* Top Cabinet Marquee */
+        #marquee {
+            height: 64px;
+            background: #5d4037;
+            border-bottom: 6px solid #1c0e06;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 15;
+            padding: 0 20px;
+            box-shadow: inset 0 -6px 0 rgba(0,0,0,0.3);
+        }
+        #marquee-title {
+            font-size: 14px;
+            color: #ffcc00;
+            text-shadow: 2px 2px 0 #3e281c, -2px -2px 0 #3e281c, 2px -2px 0 #3e281c, -2px 2px 0 #3e281c, 0 4px 0 #d48800;
+            text-align: center;
+            letter-spacing: 1px;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        /* Screen Wrapper */
+        #screen-area {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            touch-action: none;
+            cursor: grab;
+        }
+
+        /* Canvas Elements */
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: block;
+        }
+        #hud-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        #weather-layer,
+        #time-tint {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #weather-layer {
+            z-index: 2;
+            object-fit: cover;
+            opacity: 0;
+            image-rendering: pixelated;
+            transition: opacity 1.2s ease;
+        }
+        #time-tint {
+            z-index: 2;
+            background: transparent;
+            mix-blend-mode: soft-light;
+            transition: background 2s ease;
+        }
+        #gesture-hint,
+        #moment-toast {
+            position: absolute;
+            left: 50%;
+            z-index: 5;
+            transform: translateX(-50%);
+            pointer-events: none;
+            text-align: center;
+            text-shadow: 2px 2px 0 #1c0e06;
+        }
+        #gesture-hint {
+            bottom: 9%;
+            width: 80%;
+            color: #fff4cf;
+            font-size: 8px;
+            line-height: 1.7;
+            animation: hintFade 3.4s forwards;
+        }
+        #moment-toast {
+            top: 18%;
+            width: 86%;
+            color: #ffdd59;
+            font-size: 8px;
+            line-height: 1.6;
+            opacity: 0;
+            transition: opacity .2s, transform .2s;
+        }
+        #moment-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+        .hero-cat {
+            width: 170px;
+            max-width: 52%;
+            margin-bottom: 4px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 8px 0 rgba(28,14,6,.45));
+        }
+        #ending-art {
+            width: min(230px, 78%);
+            max-height: 180px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            margin: -4px 0 8px;
+            filter: drop-shadow(0 7px 0 rgba(28,14,6,.45));
+        }
+
+        /* Mud Splat Mask */
+        #mud-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 4;
+            pointer-events: none;
+            background: transparent;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* Interactive DOM UI Overlays */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 6;
+            background: rgba(43, 31, 23, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+        }
+        .overlay-screen.active {
+            display: flex;
+        }
+
+        /* Typography */
+        h1 { font-size: 18px; margin-bottom: 20px; line-height: 1.5; color: #ff9f43; text-shadow: 2px 2px 0 #1c0e06; }
+        h2 { font-size: 14px; margin-bottom: 15px; color: #ffdd59; text-shadow: 2px 2px 0 #1c0e06; }
+        p { font-size: 8px; line-height: 1.8; margin-bottom: 15px; color: #f7e6d0; }
+
+        /* Buttons (Arcade Style) */
+        .btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            padding: 12px 18px;
+            margin: 8px 0;
+            border: 4px solid #1c0e06;
+            border-radius: 8px;
+            background: #10ac84;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0c7a5c;
+            outline: none;
+            transition: transform 0.1s, box-shadow 0.1s;
+            width: 80%;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .btn-coral { background: #ff6b6b; box-shadow: 0 4px 0 #ee5253; }
+        .btn-gold { background: #ff9f43; box-shadow: 0 4px 0 #f0932b; }
+        .btn-teal { background: #00d2d3; box-shadow: 0 4px 0 #01a3a4; }
+        .btn-small { width: auto; font-size: 8px; padding: 8px 12px; }
+
+        /* Row Layout */
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            gap: 10px;
+        }
+        .btn-row .btn { width: 100%; }
+
+        /* Settings grid */
+        .settings-grid {
+            width: 100%;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 8px;
+            text-align: left;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            background: #4a3325;
+            border: 2px solid #1c0e06;
+            border-radius: 4px;
+        }
+
+        /* Atlas Viewer Overlay Styles */
+        #atlas-viewer-screen {
+            background: #2b1f17;
+            overflow-y: auto;
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+        .atlas-container {
+            width: 100%;
+            background: #1c0e06;
+            border: 4px solid #3e281c;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            text-align: center;
+        }
+        .atlas-title {
+            font-size: 8px;
+            color: #ff9f43;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .atlas-canvas-wrap {
+            overflow-x: auto;
+            background: #ff00ff; /* Chroma Key */
+            padding: 4px;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .atlas-canvas-wrap canvas {
+            display: block;
+            image-rendering: pixelated;
+            max-width: 100%;
+        }
+
+        /* Replay Exporter Styles */
+        #replay-progress {
+            width: 100%;
+            height: 12px;
+            background: #1c0e06;
+            border: 3px solid #3e281c;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #replay-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #10ac84;
+            transition: width 0.1s linear;
+        }
+        #video-container {
+            width: 100%;
+            aspect-ratio: 9/16;
+            max-height: 350px;
+            background: #1c0e06;
+            border: 6px solid #ff9f43;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            display: none;
+        }
+        #video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Instructions list */
+        .inst-list {
+            text-align: left;
+            margin: 15px auto;
+            width: 85%;
+            font-size: 8px;
+            line-height: 1.6;
+            color: #d4cfc9;
+        }
+        .inst-list li { margin-bottom: 8px; }
+
+        /* Animation Keyframes */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes hintFade {
+            0%, 60% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Mobile controls buttons layer (only visible on touch) */
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px; right: 20px;
+            z-index: 4;
+            display: none !important;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.15);
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(2px);
+        }
+        .touch-btn:active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        /* Environment download banner */
+        .env-banner {
+            font-size: 6px;
+            color: #a4b0be;
+            margin-top: 15px;
+            line-height: 1.4;
+            border-top: 1px dashed #5d4037;
+            padding-top: 8px;
+            width: 100%;
+        }
+        .env-banner a {
+            color: #54a0ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cabinet">
+        <!-- Arcade Marquee -->
+        <div id="marquee">
+            <div id="marquee-title">▼ ENDLESS TUMBLE ▼</div>
+        </div>
+
+        <!-- Gameplay Screen -->
+        <div id="screen-area">
+            <canvas id="game-canvas"></canvas>
+            <img id="weather-layer" alt="">
+            <div id="time-tint"></div>
+            <canvas id="hud-canvas"></canvas>
+            <canvas id="mud-overlay"></canvas>
+            <div id="gesture-hint">DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU</div>
+            <div id="moment-toast"></div>
+
+            <!-- Touch Controls Layer -->
+            <div id="mobile-controls">
+                <div class="touch-btn" id="btn-left">◀</div>
+                <div class="touch-btn" id="btn-right">▶</div>
+            </div>
+
+            <!-- Screen 1: Title Screen -->
+            <div id="title-screen" class="overlay-screen active">
+                <img class="hero-cat" src="assets/generated/sprites/character/slide-neutral.png" alt="Neko Rogaru sliding cat">
+                <h1>NEKO ROGARU</h1>
+                <p>Nine Lives. No Brakes.</p>
+                <div style="font-size: 7px; color:#ffdd59; margin-bottom: 25px; line-height: 1.6;">
+                    The adorable tabby cat slides rapidly down a steep forest dirt chute on her back!
+                </div>
+                <button class="btn btn-gold" id="btn-play">START FALLING</button>
+                <button class="btn btn-teal" id="btn-view-atlases">ATLAS VIEWER</button>
+                <button class="btn btn-coral" id="btn-show-instructions">HOW TO PLAY</button>
+                
+                <div class="env-banner">
+                    DRAG-TO-STEER BUILD · FIVE PLACES · CHANGING WEATHER
+                </div>
+            </div>
+
+            <!-- Screen 2: How to Play -->
+            <div id="instructions-screen" class="overlay-screen">
+                <h2>HOW TO PLAY</h2>
+                <ul class="inst-list">
+                    <li>▲ <b>Drag your finger</b> anywhere on the trail to steer.</li>
+                    <li>▲ Keyboard players can use <b>LEFT/RIGHT</b> or <b>A/D</b>.</li>
+                    <li>▲ Grab <b>Tuna Cans</b> and <b>Sardines</b> for points.</li>
+                    <li>▲ Dodge <b>Rocks, Logs, Brambles,</b> and <b>Cucumbers</b>!</li>
+                    <li>▲ Snatch <b>Yarn Shields</b> or <b>Feather Boosts</b>!</li>
+                    <li>▲ Keep falling to discover rivers, caves, torii paths, seasons, and weather.</li>
+                </ul>
+                <button class="btn btn-gold" id="btn-instructions-back">BACK TO MENU</button>
+            </div>
+
+            <!-- Screen 3: Settings & Atlas Viewer -->
+            <div id="atlas-viewer-screen" class="overlay-screen">
+                <h2>NEKO SPRITE ATLASES</h2>
+                <p>The production pixel-art atlases used by the game.</p>
+                <button class="btn btn-small btn-gold" id="btn-atlas-back" style="margin-bottom: 15px;">BACK TO MENU</button>
+
+                <div class="atlas-container">
+                    <div class="atlas-title">Cat Sprite Atlas (4x4)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-cat"></div>
+                </div>
+                <div class="atlas-container">
+                    <div class="atlas-title">Props Sprite Atlas (6x6)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-props"></div>
+                </div>
+                <div class="atlas-container">
+                    <div class="atlas-title">Environment Atlas (5x5)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-env"></div>
+                </div>
+                <div class="atlas-container">
+                    <div class="atlas-title">UI Elements Atlas (5x5)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-ui"></div>
+                </div>
+                <div class="atlas-container">
+                    <div class="atlas-title">Season & Weather (6x6)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-weather"></div>
+                </div>
+                <div class="atlas-container">
+                    <div class="atlas-title">Adorable Endings Atlas (4x4)</div>
+                    <div class="atlas-canvas-wrap" id="wrap-endings"></div>
+                </div>
+            </div>
+
+            <!-- Screen 4: Paused -->
+            <div id="pause-screen" class="overlay-screen">
+                <h1>SLIDE PAUSED</h1>
+                <button class="btn btn-gold" id="btn-resume">RESUME</button>
+                <button class="btn btn-coral" id="btn-pause-retry">RESTART</button>
+                <button class="btn btn-teal" id="btn-pause-home">QUIT TO MENU</button>
+            </div>
+
+            <!-- Screen 5: Results Screen -->
+            <div id="results-screen" class="overlay-screen">
+                <h1 style="color:#ff4757; font-size:20px;">SPLACK!</h1>
+                <h2 id="ending-name" style="font-size:10px; color:#ffdd59; margin-bottom: 20px;">ENDING-MUD-SPLAT</h2>
+                <img id="ending-art" src="assets/generated/sprites/endings/ending-cardboard-box.png" alt="Funny cat ending">
+                
+                <div style="background:#2c1c12; border:4px solid #1c0e06; border-radius:10px; padding:15px; width:100%; margin-bottom:15px; text-align:left; font-size:8px; line-height:1.8;">
+                    <div style="display:flex; justify-content:space-between;"><span>SCORE:</span><span id="res-score" style="color:#ffdd59;">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>DISTANCE:</span><span id="res-dist" style="color:#00d2d3;">0m</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>CANS:</span><span id="res-cans" style="color:#10ac84;">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>DISCOVERIES:</span><span id="res-combo" style="color:#ff6b6b;">0 found</span></div>
+                </div>
+
+                <button class="btn btn-gold" id="btn-trigger-replay">GENERATE 10S REPLAY</button>
+                <button class="btn btn-teal" id="btn-results-retry">TRY AGAIN</button>
+                <button class="btn btn-coral" id="btn-results-home">QUIT TO MENU</button>
+            </div>
+
+            <!-- Screen 6: Replay & Exporter -->
+            <div id="replay-screen" class="overlay-screen">
+                <h1>COZY REPLAY STUDIO</h1>
+                <p id="replay-status">Encoding your last 10 seconds of rapid sliding, adorable crashes, and dynamic HUD...</p>
+                
+                <!-- Progress Indicator -->
+                <div id="replay-progress">
+                    <div id="replay-progress-bar"></div>
+                </div>
+
+                <!-- Video Player Container (shows after generation) -->
+                <div id="video-container">
+                    <video id="video-player" autoplay loop muted controls playsinline></video>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-teal btn-small" id="btn-share-video" disabled>SHARE REPLAY</button>
+                    <button class="btn btn-gold btn-small" id="btn-download-video" disabled>DOWNLOAD VIDEO</button>
+                </div>
+                <button class="btn btn-coral btn-small" id="btn-replay-back">PLAY AGAIN</button>
+                
+                <div style="font-size:6px; color:#ffdd59; margin-top:10px;">
+                    Supports native OS Share sheet with video format. Fallback is standard disk download.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden Export Canvas for Replay Compilation -->
+    <canvas id="export-canvas" width="720" height="1280" style="display:none;"></canvas>
+
+    <script>
+        /*************************************************************
+         * 1. GLOBAL SETTINGS, CONSTANTS, & ASSET DICTIONARIES
+         *************************************************************/
+        const CONFIG = {
+            spriteSize: 64, // grid cell resolution
+            woodlandPalette: {
+                darkCocoa: '#3d2314',
+                warmBrown: '#8a5e3c',
+                paleCream: '#f5ebd5',
+                softPink: '#fca5a5',
+                greenEyes: '#4ade80',
+                mossGreen: '#4b6528',
+                brightGold: '#f1c40f',
+                waterBlue: '#2980b9',
+                glowCyan: '#00d2d3'
+            }
+        };
+
+        const BIOMES = {
+            SUNLIT_FERN: {
+                id: 'sunlit-fern-run',
+                name: 'Sunlit Fern Run',
+                fogColor: 0x223315,
+                laneColor: '#5c4033',
+                sideColor: '#4b6528',
+                accentColor: '#849b4d',
+                skyColor: '#b4cf66',
+                soundtrack: 'forest-cozy'
+            },
+            RAINY_CREEK: {
+                id: 'rainy-creek-run',
+                name: 'Rainy Creek Run',
+                fogColor: 0x182428,
+                laneColor: '#362f2b',
+                sideColor: '#204135',
+                accentColor: '#1d90a0',
+                skyColor: '#4b7378',
+                soundtrack: 'rain-puddles'
+            },
+            GLOWROOT_HOLLOW: {
+                id: 'glowroot-hollow',
+                name: 'Glowroot Hollow',
+                fogColor: 0x0a101d,
+                laneColor: '#17111e',
+                sideColor: '#0a3138',
+                accentColor: '#00ffff',
+                skyColor: '#111827',
+                soundtrack: 'mystical-roots'
+            },
+            KOI_RIVER: {
+                id: 'koi-river-rush',
+                name: 'Koi River Rush',
+                fogColor: 0x132a3a,
+                laneColor: '#144c68',
+                sideColor: '#105232',
+                accentColor: '#3498db',
+                skyColor: '#2c3e50',
+                soundtrack: 'bubbly-river'
+            },
+            TORII_MAPLE: {
+                id: 'torii-maple-descent',
+                name: 'Torii Maple Descent',
+                fogColor: 0x361615,
+                laneColor: '#5c2d25',
+                sideColor: '#5c1010',
+                accentColor: '#e67e22',
+                skyColor: '#ff7f50',
+                soundtrack: 'autumn-koto'
+            }
+        };
+
+        // Complete 16 Safe, Hilarious Endings mapped to Biomes/Themes
+        const ENDINGS = [
+            { id: "ending-rock-bonk", text: "STYLISH CRASH BONK!", caption: "Ouch! Cute head bump!", color: "#ff6b6b" },
+            { id: "ending-mud-splat", text: "GLORIOUS MUD SPLAT!", caption: "Mmm, warm squishy mud...", color: "#ff9f43" },
+            { id: "ending-river-splash", text: "REFRESHING RIVER SPLASH!", caption: "Cannonball into the shallow river!", color: "#00d2d3" },
+            { id: "ending-bramble-hammock", text: "COZY BRAMBLE HAMMOCK!", caption: "Comfy thorny cradle!", color: "#22aa77" },
+            { id: "ending-cardboard-box", text: "DELIVERED IN A BOX!", caption: "If I fits, I sits!", color: "#ff9f43" },
+            { id: "ending-leaf-pile", text: "AUTUMN LEAF DIVE!", caption: "Buried in warm maple sheets!", color: "#ee5253" },
+            { id: "ending-futon", text: "PERFECT FUTON COMA!", caption: "Passed out immediately...", color: "#feca57" },
+            { id: "ending-onsen", text: "STEAMY ONSEN SOAK!", caption: "Ahhh, majestic hot spring bliss.", color: "#10ac84" },
+            { id: "ending-ufo", text: "UFO ABDUCTION SPLASH!", caption: "Scooped by starry entities!", color: "#00d2d3" },
+            { id: "ending-tanuki-rescue", text: "TANUKI WOODS RESCUE!", caption: "Acquired a leafy racoon pal!", color: "#10ac84" },
+            { id: "ending-snowbank", text: "POWDER SNOW CRUNCH!", caption: "Chilly soft winter landing!", color: "#54a0ff" },
+            { id: "ending-shrine-bell", text: "SACRED BELL CLANG!", caption: "Bong! Cosmic purr vibrations!", color: "#ff9f43" },
+            { id: "ending-koi-ride", text: "KOI RIVER SAFARI!", caption: "Surfing down-stream with fishies!", color: "#ff6b6b" },
+            { id: "ending-mushroom-umbrella", text: "MUSHROOM UMBRELLA SHIELD!", caption: "Shady toadstool nap time!", color: "#10ac84" },
+            { id: "ending-goalkeeper", text: "WORLD-CLASS SOCCER SAVE!", caption: "Goalies don't need brakes!", color: "#01a3a4" },
+            { id: "ending-golden-cans", text: "INFINITE TUNA CAN MOUNTAIN!", caption: "The legends were true!", color: "#feca57" }
+        ];
+
+        // Atlases references to be populated procedurally
+        const ATL_CANVASES = {
+            character: null,
+            props: null,
+            environment: null,
+            ui: null,
+            seasonWeather: null,
+            endings: null,
+            replayFrame: null
+        };
+
+
+        /*************************************************************
+         * 2. PROCEDURAL PIXEL ART GENERATOR ENGINE (Warm Woodland)
+         *************************************************************/
+        class PixelArtEngine {
+            static init() {
+                ATL_CANVASES.character = this.createAtlas(4, 4, this.drawCatSprite.bind(this));
+                ATL_CANVASES.props = this.createAtlas(6, 6, this.drawPropSprite.bind(this));
+                ATL_CANVASES.environment = this.createAtlas(5, 5, this.drawEnvSprite.bind(this));
+                ATL_CANVASES.ui = this.createAtlas(5, 5, this.drawUISprite.bind(this));
+                ATL_CANVASES.seasonWeather = this.createAtlas(6, 6, this.drawSeasonWeatherSprite.bind(this));
+                ATL_CANVASES.endings = this.createAtlas(4, 4, this.drawEndingSprite.bind(this));
+                ATL_CANVASES.replayFrame = this.createReplayFrame();
+
+                this.renderToDOMViewer();
+            }
+
+            static createAtlas(cols, rows, drawFn) {
+                const canvas = document.createElement('canvas');
+                canvas.width = cols * CONFIG.spriteSize;
+                canvas.height = rows * CONFIG.spriteSize;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+
+                // Transparent magenta chroma-key background
+                ctx.fillStyle = '#ff00ff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const index = r * cols + c;
+                        ctx.save();
+                        ctx.translate(c * CONFIG.spriteSize, r * CONFIG.spriteSize);
+                        
+                        // Clip drawing zone
+                        ctx.beginPath();
+                        ctx.rect(0, 0, CONFIG.spriteSize, CONFIG.spriteSize);
+                        ctx.clip();
+
+                        drawFn(ctx, index);
+                        ctx.restore();
+                    }
+                }
+                return canvas;
+            }
+
+            // Draw beautiful retro pixel patterns helper
+            static pPixel(ctx, x, y, w, h, color) {
+                ctx.fillStyle = color;
+                ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
+            }
+
+            static pCircle(ctx, cx, cy, r, color) {
+                ctx.fillStyle = color;
+                for (let y = -r; y <= r; y++) {
+                    for (let x = -r; x <= r; x++) {
+                        if (x * x + y * y <= r * r) {
+                            ctx.fillRect(Math.floor(cx + x), Math.floor(cy + y), 1, 1);
+                        }
+                    }
+                }
+            }
+
+            static pOutline(ctx, cx, cy, r, fill, outline) {
+                this.pCircle(ctx, cx, cy, r + 1, outline);
+                this.pCircle(ctx, cx, cy, r, fill);
+            }
+
+            // Draw 4x4 Tabby Cat sliding poses
+            static drawCatSprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                const c = CONFIG.woodlandPalette;
+
+                // Shadow
+                this.pCircle(ctx, center, center + 14, 16, 'rgba(30,15,5,0.4)');
+
+                // Body Outline (cocoa)
+                this.pOutline(ctx, center, center + 4, 14, '#7c6e64', c.darkCocoa); // Striped grey-brown coat
+
+                // Belly (cream)
+                this.pCircle(ctx, center, center + 8, 9, c.paleCream);
+
+                // Head Outline & Head
+                this.pOutline(ctx, center, center - 10, 11, '#7c6e64', c.darkCocoa);
+
+                // Ears
+                this.pPixel(ctx, center - 10, center - 23, 4, 4, c.darkCocoa);
+                this.pPixel(ctx, center - 9, center - 22, 2, 2, c.softPink);
+                this.pPixel(ctx, center + 6, center - 23, 4, 4, c.darkCocoa);
+                this.pPixel(ctx, center + 7, center - 22, 2, 2, c.softPink);
+
+                // Face configuration based on pose indices
+                let eyeY = center - 12;
+                let eyesGreen = true;
+                let faceState = "neutral"; // blink, worried, dizzy, meow
+
+                if (idx === 4) faceState = "blink";     // blink
+                if (idx === 5 || idx === 8) faceState = "meow";  // meow / happy
+                if (idx === 6) faceState = "worried";   // worried
+                if (idx === 7 || idx === 9) faceState = "dizzy";     // dizzy / bump
+
+                if (faceState === "neutral") {
+                    this.pCircle(ctx, center - 4, eyeY, 2, c.greenEyes);
+                    this.pCircle(ctx, center + 4, eyeY, 2, c.greenEyes);
+                    this.pPixel(ctx, center - 4, eyeY, 1, 1, '#000');
+                    this.pPixel(ctx, center + 4, eyeY, 1, 1, '#000');
+                } else if (faceState === "blink") {
+                    this.pPixel(ctx, center - 5, eyeY, 3, 1, c.darkCocoa);
+                    this.pPixel(ctx, center + 2, eyeY, 3, 1, c.darkCocoa);
+                } else if (faceState === "meow") {
+                    this.pPixel(ctx, center - 5, eyeY, 2, 2, c.greenEyes);
+                    this.pPixel(ctx, center + 3, eyeY, 2, 2, c.greenEyes);
+                    this.pCircle(ctx, center, eyeY + 3, 2, '#ff4757'); // Happy open mouth
+                } else if (faceState === "worried") {
+                    this.pPixel(ctx, center - 4, eyeY, 1, 2, '#000');
+                    this.pPixel(ctx, center + 4, eyeY, 1, 2, '#000');
+                    this.pPixel(ctx, center - 1, eyeY + 2, 3, 1, c.darkCocoa); // flat mouth
+                } else if (faceState === "dizzy") {
+                    // spiral/cross eyes
+                    this.pPixel(ctx, center - 5, eyeY - 1, 3, 3, c.darkCocoa);
+                    this.pPixel(ctx, center + 2, eyeY - 1, 3, 3, c.darkCocoa);
+                    this.pPixel(ctx, center - 4, eyeY, 1, 1, '#feca57');
+                    this.pPixel(ctx, center + 3, eyeY, 1, 1, '#feca57');
+                }
+
+                // Small pink nose
+                this.pPixel(ctx, center, eyeY + 1, 1, 1, c.softPink);
+
+                // Striped coat details
+                this.pPixel(ctx, center - 13, center + 2, 3, 1, c.darkCocoa);
+                this.pPixel(ctx, center + 10, center + 2, 3, 1, c.darkCocoa);
+                this.pPixel(ctx, center - 13, center + 7, 3, 1, c.darkCocoa);
+                this.pPixel(ctx, center + 10, center + 7, 3, 1, c.darkCocoa);
+
+                // Four paws spread up towards viewer (highly detailed)
+                const drawPaw = (px, py) => {
+                    this.pCircle(ctx, px, py, 4, c.darkCocoa);
+                    this.pCircle(ctx, px, py, 3, c.paleCream);
+                    this.pCircle(ctx, px, py + 1, 2, '#222'); // Black main pad
+                    this.pPixel(ctx, px - 1, py - 2, 1, 1, c.softPink); // Pink little beans
+                    this.pPixel(ctx, px, py - 2, 1, 1, c.softPink);
+                    this.pPixel(ctx, px + 1, py - 2, 1, 1, c.softPink);
+                };
+
+                // Animate paws based on tilt indexes
+                let tiltL = 0, tiltR = 0;
+                if (idx === 1) { tiltL = -3; tiltR = -1; } // slide-left leaning
+                if (idx === 2) { tiltL = 1; tiltR = 3; } // slide-right leaning
+
+                drawPaw(center - 13 + tiltL, center - 10); // top left
+                drawPaw(center + 13 + tiltR, center - 10); // top right
+                drawPaw(center - 12 + tiltL, center + 14); // bottom left
+                drawPaw(center + 12 + tiltR, center + 14); // bottom right
+
+                // Tail (Striped brown-grey)
+                this.pCircle(ctx, center - 14, center + 20, 3, c.darkCocoa);
+                this.pCircle(ctx, center - 14, center + 20, 2, '#7c6e64');
+                this.pPixel(ctx, center - 14, center + 20, 1, 1, c.darkCocoa);
+            }
+
+            // Draw 6x6 Food & Items Props
+            static drawPropSprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                const c = CONFIG.woodlandPalette;
+
+                if (idx < 3) { // 0: tuna-can, 1: premium-can, 2: mystery-can
+                    const metal = idx === 0 ? '#b2bec3' : (idx === 1 ? '#feca57' : '#9b59b6');
+                    const label = idx === 0 ? '#3498db' : (idx === 1 ? '#ff4757' : '#1abc9c');
+                    // Outline Cylinder
+                    this.pPixel(ctx, center - 12, center - 6, 24, 14, c.darkCocoa);
+                    this.pPixel(ctx, center - 11, center - 5, 22, 12, metal);
+                    this.pPixel(ctx, center - 11, center, 22, 6, label); // Label
+                    // Fish icon on can
+                    this.pPixel(ctx, center - 3, center + 2, 6, 2, '#fff');
+                    this.pPixel(ctx, center + 2, center + 1, 2, 4, '#fff');
+                } else if (idx === 3) { // sardine
+                    this.pCircle(ctx, center, center, 6, c.darkCocoa);
+                    this.pCircle(ctx, center, center, 5, '#cbd5e1');
+                    this.pPixel(ctx, center + 4, center - 2, 3, 4, '#94a3b8'); // Tail
+                } else if (idx === 4) { // shrimp
+                    this.pCircle(ctx, center, center, 7, '#ff6b6b');
+                    this.pCircle(ctx, center + 2, center - 2, 4, c.paleCream);
+                } else if (idx === 5) { // cat-treat
+                    this.pOutline(ctx, center, center, 6, '#d35400', c.darkCocoa); // Heart treat
+                } else if (idx === 6) { // glowing-feather
+                    this.pOutline(ctx, center, center, 5, '#00ffff', '#0a3d62');
+                } else if (idx === 7) { // catnip
+                    this.pCircle(ctx, center - 4, center, 5, c.darkCocoa);
+                    this.pCircle(ctx, center - 4, center, 4, '#2ecc71');
+                    this.pCircle(ctx, center + 4, center + 2, 5, c.darkCocoa);
+                    this.pCircle(ctx, center + 4, center + 2, 4, '#27ae60');
+                } else if (idx === 8) { // yarn-shield
+                    this.pOutline(ctx, center, center, 10, '#ec4899', c.darkCocoa);
+                    this.pPixel(ctx, center - 5, center - 5, 10, 10, '#f472b6');
+                } else if (idx === 9) { // bell-magnet
+                    this.pOutline(ctx, center, center, 8, c.brightGold, c.darkCocoa);
+                } else if (idx === 18) { // rock
+                    this.pOutline(ctx, center, center, 12, '#7f8c8d', c.darkCocoa);
+                    this.pPixel(ctx, center - 4, center - 4, 3, 3, '#95a5a6'); // highlight
+                } else if (idx === 19) { // fallen-log
+                    this.pPixel(ctx, center - 16, center - 8, 32, 16, c.darkCocoa);
+                    this.pPixel(ctx, center - 15, center - 7, 30, 14, '#a0522d');
+                    this.pCircle(ctx, center - 15, center, 7, '#d2b48c'); // Rings
+                } else if (idx === 21) { // bramble
+                    this.pOutline(ctx, center, center, 10, '#4a148c', c.darkCocoa);
+                    this.pPixel(ctx, center - 2, center - 2, 4, 4, '#e040fb');
+                } else if (idx === 27) { // cool cucumber
+                    this.pOutline(ctx, center, center, 10, '#27ae60', c.darkCocoa);
+                    this.pPixel(ctx, center - 5, center - 3, 10, 4, '#000'); // Sunglasses
+                } else {
+                    // Fallback generic pretty pixel star / orb
+                    this.pOutline(ctx, center, center, 6, '#ffdd59', c.darkCocoa);
+                }
+            }
+
+            // Draw 5x5 Environment Tiles
+            static drawEnvSprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                const c = CONFIG.woodlandPalette;
+
+                if (idx === 0 || idx === 1) { // moss banks left/right
+                    this.pPixel(ctx, 0, 0, s, s, c.mossGreen);
+                    this.pPixel(ctx, idx === 0 ? s - 8 : 0, 0, 8, s, '#3d4f21');
+                } else if (idx === 2 || idx === 3) { // root walls left/right
+                    this.pPixel(ctx, 0, 0, s, s, '#5c4033');
+                    this.pPixel(ctx, idx === 2 ? s - 6 : 0, 0, 6, s, c.darkCocoa);
+                } else if (idx === 6) { // fern cluster
+                    this.pOutline(ctx, center, center, 12, '#2ecc71', c.darkCocoa);
+                    this.pOutline(ctx, center - 6, center + 4, 8, '#27ae60', c.darkCocoa);
+                } else if (idx === 11) { // mossy stump
+                    this.pPixel(ctx, center - 12, center - 2, 24, 16, c.darkCocoa);
+                    this.pPixel(ctx, center - 10, center, 20, 12, c.warmBrown);
+                    this.pCircle(ctx, center, center, 10, '#d2b48c'); // trunk circles
+                    this.pCircle(ctx, center - 8, center - 2, 4, c.mossGreen); // moss on stump
+                } else {
+                    // Soil filler
+                    this.pPixel(ctx, 0, 0, s, s, '#4e3629');
+                    this.pPixel(ctx, 8, 12, 4, 4, '#3e281c');
+                    this.pPixel(ctx, 32, 40, 4, 4, '#3e281c');
+                }
+            }
+
+            // Draw 5x5 UI Icons
+            static drawUISprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                const c = CONFIG.woodlandPalette;
+
+                if (idx === 15) { // lives meter (Heart)
+                    this.pCircle(ctx, center - 4, center - 2, 5, '#ff4757');
+                    this.pCircle(ctx, center + 4, center - 2, 5, '#ff4757');
+                    ctx.beginPath();
+                    ctx.fillStyle = '#ff4757';
+                    ctx.moveTo(center - 9, center - 2);
+                    ctx.lineTo(center + 9, center - 2);
+                    ctx.lineTo(center, center + 9);
+                    ctx.fill();
+                    // cocoa outline
+                    ctx.strokeStyle = c.darkCocoa;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    // Wood background badge
+                    this.pOutline(ctx, center, center, 12, c.warmBrown, c.darkCocoa);
+                    this.pCircle(ctx, center, center, 8, c.paleCream);
+                }
+            }
+
+            // Draw 6x6 Season & Weather overlays
+            static drawSeasonWeatherSprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                if (idx === 2) { // cherry blossom petal
+                    this.pOutline(ctx, center, center, 4, '#ffb7c5', '#ff8fa3');
+                } else if (idx === 14) { // golden maple leaf
+                    this.pOutline(ctx, center, center, 6, '#d35400', '#962d00');
+                } else if (idx === 23) { // snow flake
+                    this.pCircle(ctx, center, center, 4, '#ffffff');
+                    this.pPixel(ctx, center - 6, center, 13, 1, '#ffffff');
+                    this.pPixel(ctx, center, center - 6, 1, 13, '#ffffff');
+                } else {
+                    this.pCircle(ctx, center, center, 3, 'rgba(255,255,255,0.6)');
+                }
+            }
+
+            // Draw 4x4 Cute safe ending scenes
+            static drawEndingSprite(ctx, idx) {
+                const s = CONFIG.spriteSize;
+                const center = s / 2;
+                const c = CONFIG.woodlandPalette;
+
+                this.pPixel(ctx, 0, 0, s, s, '#2b1f17'); // dark background
+
+                if (idx === 4) { // ending-cardboard-box
+                    // Draw box
+                    this.pPixel(ctx, center - 16, center, 32, 18, '#cd853f');
+                    this.pPixel(ctx, center - 16, center, 32, 2, c.darkCocoa); // rim
+                    // Cat paws and tail sticking out of top
+                    this.pCircle(ctx, center - 6, center - 6, 4, c.paleCream);
+                    this.pCircle(ctx, center + 6, center - 6, 4, c.paleCream);
+                    this.pPixel(ctx, center, center - 12, 3, 12, '#7c6e64'); // tail waving
+                } else if (idx === 7) { // ending-onsen
+                    // Steamy hot water pool
+                    this.pPixel(ctx, 0, center, s, s, c.waterBlue);
+                    this.pPixel(ctx, 0, center, s, 3, '#9ecade'); // steam border
+                    // Floating cat on back smiling
+                    this.pCircle(ctx, center, center - 2, 8, '#7c6e64');
+                    this.pPixel(ctx, center - 2, center - 4, 5, 1, '#000'); // smiling eyes
+                    // Towel on head
+                    this.pPixel(ctx, center - 4, center - 10, 8, 3, '#fff');
+                } else {
+                    // Default cute landscape splat
+                    this.pCircle(ctx, center, center, 12, '#ffdd59');
+                    this.pCircle(ctx, center, center, 10, '#ff4757');
+                    this.pPixel(ctx, center - 4, center - 4, 8, 8, '#fff');
+                }
+            }
+
+            // Create Replay Overlay frame
+            static createReplayFrame() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 720;
+                canvas.height = 1280;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+
+                // Transparent central safe zone (82% height)
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                
+                // Draw Wood-textured margins
+                const borderW = 36;
+                ctx.fillStyle = '#3e281c';
+                ctx.fillRect(0, 0, 720, borderW); // top
+                ctx.fillRect(0, 1280 - borderW * 3, 720, borderW * 3); // bottom ribbons
+                ctx.fillRect(0, 0, borderW, 1280); // left
+                ctx.fillRect(720 - borderW, 0, borderW, 1280); // right
+
+                // Inner outline border
+                ctx.strokeStyle = '#23140b';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(borderW - 5, borderW - 5, 720 - borderW * 2 + 10, 1280 - borderW * 4 + 10);
+
+                // Leaf decor on corners
+                ctx.fillStyle = '#4b6528';
+                ctx.fillRect(borderW, borderW, 30, 30);
+                ctx.fillRect(720 - borderW - 30, borderW, 30, 30);
+
+                // Cat-ear title plaque at the top center
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(720 / 2 - 160, borderW + 10, 320, 60);
+                ctx.strokeStyle = '#ffd32a';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(720 / 2 - 160, borderW + 10, 320, 60);
+
+                // Text
+                ctx.font = "20px 'Press Start 2P'";
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "center";
+                ctx.fillText("NEKO CAM REPLAY", 720 / 2, borderW + 48);
+
+                return canvas;
+            }
+
+            static renderToDOMViewer() {
+                const map = [
+                    { id: 'wrap-cat', atlas: ATL_CANVASES.character },
+                    { id: 'wrap-props', atlas: ATL_CANVASES.props },
+                    { id: 'wrap-env', atlas: ATL_CANVASES.environment },
+                    { id: 'wrap-ui', atlas: ATL_CANVASES.ui },
+                    { id: 'wrap-weather', atlas: ATL_CANVASES.seasonWeather },
+                    { id: 'wrap-endings', atlas: ATL_CANVASES.endings }
+                ];
+                map.forEach(item => {
+                    const wrap = document.getElementById(item.id);
+                    if (wrap) {
+                        wrap.innerHTML = '';
+                        wrap.appendChild(item.atlas);
+                    }
+                });
+            }
+        }
+
+
+        /*************************************************************
+         * 3. PROCEDURAL WEB AUDIO CHIPTUNE SYNTHESIZER
+         *************************************************************/
+        class AudioSynth {
+            constructor() {
+                this.ctx = null;
+                this.dest = null;
+                this.sequencerTimer = null;
+                this.isPlaying = false;
+                this.tempo = 140; // BPM
+                this.step = 0;
+                
+                // Track configurations
+                this.volume = 0.08;
+                this.currentBiomeId = 'sunlit-fern-run';
+
+                // Scale dictionaries mapping to game moods
+                this.scales = {
+                    'sunlit-fern-run': [261.63, 293.66, 329.63, 392.00, 440.00, 523.25], // C major pentatonic
+                    'rainy-creek-run': [220.00, 246.94, 261.63, 329.63, 392.00, 440.00], // A minor pentatonic
+                    'glowroot-hollow': [196.00, 220.00, 233.08, 293.66, 349.23, 392.00], // G minor magical
+                    'koi-river-rush': [293.66, 329.63, 349.23, 392.00, 440.00, 587.33], // D minor mixolydian
+                    'torii-maple-descent': [220.00, 261.63, 293.66, 329.63, 440.00, 523.25] // Japanese koto pentatonic
+                };
+
+                // Sequential melody patterns
+                this.patterns = [
+                    [0, 2, 4, 3, 2, 4, 5, 4],
+                    [2, 0, 1, 2, 3, 2, 1, 0],
+                    [4, 4, 5, 4, 3, 2, 1, 0],
+                    [0, 3, 2, 5, 4, 1, 2, 0]
+                ];
+            }
+
+            init() {
+                if (this.ctx) return;
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContextClass();
+                    this.dest = this.ctx.createMediaStreamDestination();
+                } catch(e) {
+                    console.warn("Web Audio API not supported", e);
+                }
+            }
+
+            startBGM() {
+                this.init();
+                if (!this.ctx || this.isPlaying) return;
+                this.isPlaying = true;
+                this.step = 0;
+                
+                const stepDuration = 60 / this.tempo / 2; // eighth notes
+                let nextNoteTime = this.ctx.currentTime;
+
+                const scheduler = () => {
+                    while (nextNoteTime < this.ctx.currentTime + 0.1) {
+                        this.playSequencerStep(nextNoteTime);
+                        nextNoteTime += stepDuration;
+                        this.step = (this.step + 1) % 32;
+                    }
+                    this.sequencerTimer = setTimeout(scheduler, 25);
+                };
+                scheduler();
+            }
+
+            stopBGM() {
+                if (this.sequencerTimer) {
+                    clearTimeout(this.sequencerTimer);
+                    this.sequencerTimer = null;
+                }
+                this.isPlaying = false;
+            }
+
+            setBiome(biomeId) {
+                this.currentBiomeId = biomeId;
+            }
+
+            playSequencerStep(time) {
+                if (!this.ctx) return;
+                const scale = this.scales[this.currentBiomeId] || this.scales['sunlit-fern-run'];
+                const patternIdx = Math.floor(this.step / 8) % this.patterns.length;
+                const noteIdx = this.patterns[patternIdx][this.step % 8];
+                const freq = scale[noteIdx];
+
+                // Play bass on beat
+                if (this.step % 4 === 0) {
+                    this.synthTone(freq / 2, 0.25, 'triangle', this.volume * 1.5, time);
+                }
+
+                // Play lead melody
+                if (this.step % 2 === 0 && Math.random() > 0.15) {
+                    this.synthTone(freq, 0.12, 'square', this.volume, time);
+                }
+
+                // Cute percussion (noise puff)
+                if (this.step % 4 === 2) {
+                    this.synthNoise(0.05, this.volume * 0.8, time);
+                }
+            }
+
+            synthTone(freq, duration, type, vol, time) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, time);
+
+                gain.gain.setValueAtTime(vol, time);
+                gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                gain.connect(this.dest); // Route to recording stream!
+
+                osc.start(time);
+                osc.stop(time + duration);
+            }
+
+            synthNoise(duration, vol, time) {
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(1000, time);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(vol, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                gain.connect(this.dest);
+
+                noise.start(time);
+                noise.stop(time + duration);
+            }
+
+            // Sound Effects Trigger (Connected both to speaker and exporter)
+            playSFX(type) {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                if (type === 'lean') {
+                    this.synthTone(330, 0.08, 'triangle', this.volume * 2, now);
+                    this.synthTone(440, 0.1, 'triangle', this.volume * 2, now + 0.05);
+                } else if (type === 'pickup') {
+                    this.synthTone(523.25, 0.05, 'square', this.volume * 2, now);
+                    this.synthTone(659.25, 0.05, 'square', this.volume * 2, now + 0.04);
+                    this.synthTone(783.99, 0.08, 'square', this.volume * 2, now + 0.08);
+                    this.synthTone(1046.50, 0.12, 'square', this.volume * 2, now + 0.12);
+                } else if (type === 'bump') {
+                    this.synthTone(150, 0.15, 'sawtooth', this.volume * 3, now);
+                    this.synthTone(90, 0.2, 'sawtooth', this.volume * 3, now + 0.05);
+                } else if (type === 'shield') {
+                    this.synthTone(880, 0.1, 'sine', this.volume * 2, now);
+                    this.synthTone(987.77, 0.1, 'sine', this.volume * 2, now + 0.05);
+                    this.synthTone(1174.66, 0.2, 'sine', this.volume * 2, now + 0.1);
+                } else if (type === 'boost') {
+                    for (let i = 0; i < 6; i++) {
+                        this.synthTone(400 + i * 150, 0.05, 'sawtooth', this.volume * 1.5, now + i * 0.05);
+                    }
+                } else if (type === 'gameover') {
+                    this.synthTone(440, 0.2, 'square', this.volume * 2.5, now);
+                    this.synthTone(349.23, 0.2, 'square', this.volume * 2.5, now + 0.15);
+                    this.synthTone(293.66, 0.3, 'square', this.volume * 2.5, now + 0.3);
+                    this.synthTone(220.00, 0.5, 'square', this.volume * 2.5, now + 0.45);
+                }
+            }
+        }
+
+        const SOUND = new AudioSynth();
+
+
+        /*************************************************************
+         * 4. THREE.JS GAMEPLAY WORLD ENGINE
+         *************************************************************/
+        class GameEngine {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.hudCanvas = document.getElementById('hud-canvas');
+                this.hudCtx = this.hudCanvas.getContext('2d');
+                this.renderer = null;
+                this.scene = null;
+                this.camera = null;
+                
+                // Game States
+                this.state = 'MENU'; // MENU, PLAYING, PAUSED, ENDING, RESULTS
+                this.score = 0;
+                this.distance = 0;
+                this.cansCollected = 0;
+                this.maxCombo = 1;
+                this.currentCombo = 1;
+                this.comboTimer = 0;
+                this.lives = 3;
+
+                // Physics & Mechanics
+                this.catX = 0; // -3 to +3
+                this.catTargetX = 0;
+                this.scrollSpeed = 15; // base speed
+                this.distanceCovered = 0;
+                this.activeBiome = BIOMES.SUNLIT_FERN;
+                this.mudFactor = 0;
+
+                // Powerups
+                this.shieldActive = false;
+                this.boostActive = false;
+                this.boostTimer = 0;
+
+                // Spawning
+                this.entities = []; // { mesh, type, x, y, speed, gathered }
+                this.particles = []; // { mesh, vx, vy, vz, life }
+                this.spawnTimer = 0;
+
+                // Rolling State History for 10s deterministic replay (30 fps)
+                this.history = [];
+                this.maxHistoryLength = 300; // 10 seconds at 30 fps
+                this.audioEvents = []; // { timeMs, sfxType }
+                this.runStartTime = 0;
+
+                // Background scroll offsets
+                this.bgOffset = 0;
+                this.bgPlanes = [];
+
+                // Dynamic endings mapping
+                this.selectedEnding = ENDINGS[0];
+
+                this.initThree();
+                this.setupInput();
+                this.animate();
+            }
+
+            initThree() {
+                // Perfect Aspect Ratio management (9:16 portrait)
+                const w = this.canvas.clientWidth;
+                const h = this.canvas.clientHeight;
+                this.hudCanvas.width = w;
+                this.hudCanvas.height = h;
+
+                this.renderer = new THREE.WebGLRenderer({
+                    canvas: this.canvas,
+                    antialias: false,
+                    preserveDrawingBuffer: true // Vital for Canvas exporting!
+                });
+                this.renderer.setSize(w, h, false);
+                this.renderer.shadowMap.enabled = true;
+
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.FogExp2(0x223315, 0.05);
+
+                this.camera = new THREE.PerspectiveCamera(60, 9 / 16, 0.1, 100);
+                // Camera locks down the chute looking backwards at sliding cat
+                this.camera.position.set(0, -6, 8);
+                this.camera.lookAt(0, 1, 0);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xfffbe0, 1.2);
+                this.scene.add(ambientLight);
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(5, -5, 10);
+                this.scene.add(dirLight);
+
+                // Create Scrolling Road Planes
+                this.createScrollingChute();
+
+                // Create Three.js Cat Sprite Mesh
+                this.createCatMesh();
+            }
+
+            createScrollingChute() {
+                // Double-buffer planes for seamless infinite vertical parallax
+                const roadGeo = new THREE.PlaneGeometry(8, 25);
+                const roadMat1 = new THREE.MeshBasicMaterial({ color: 0x4a3325 });
+                const roadMat2 = new THREE.MeshBasicMaterial({ color: 0x3d271d });
+
+                const p1 = new THREE.Mesh(roadGeo, roadMat1);
+                p1.position.set(0, 5, -1);
+                this.scene.add(p1);
+
+                const p2 = new THREE.Mesh(roadGeo, roadMat2);
+                p2.position.set(0, 30, -1);
+                this.scene.add(p2);
+
+                this.bgPlanes = [p1, p2];
+
+                // Side Wall Borders (moss / tree blocks)
+                const wallGeo = new THREE.BoxGeometry(2, 25, 2);
+                const wallMat = new THREE.MeshBasicMaterial({ color: 0x223a1a });
+
+                const wallL1 = new THREE.Mesh(wallGeo, wallMat);
+                wallL1.position.set(-5, 5, 0);
+                this.scene.add(wallL1);
+
+                const wallR1 = new THREE.Mesh(wallGeo, wallMat);
+                wallR1.position.set(5, 5, 0);
+                this.scene.add(wallR1);
+
+                const wallL2 = new THREE.Mesh(wallGeo, wallMat);
+                wallL2.position.set(-5, 30, 0);
+                this.scene.add(wallL2);
+
+                const wallR2 = new THREE.Mesh(wallGeo, wallMat);
+                wallR2.position.set(5, 30, 0);
+                this.scene.add(wallR2);
+
+                this.walls = [wallL1, wallR1, wallL2, wallR2];
+            }
+
+            createCatMesh() {
+                // Cat plane texture sourced dynamically from generated canvas!
+                this.catTexture = new THREE.CanvasTexture(ATL_CANVASES.character);
+                this.catTexture.minFilter = THREE.NearestFilter;
+                this.catTexture.magFilter = THREE.NearestFilter;
+                
+                // Segment character atlas to isolate "slide-neutral" (0,0 coordinate)
+                this.catTexture.repeat.set(0.25, 0.25);
+                this.catTexture.offset.set(0, 0.75); // top left row
+
+                const catGeo = new THREE.PlaneGeometry(2.2, 2.2);
+                const catMat = new THREE.MeshBasicMaterial({
+                    map: this.catTexture,
+                    transparent: true,
+                    alphaTest: 0.1
+                });
+                this.catMesh = new THREE.Mesh(catGeo, catMat);
+                this.catMesh.position.set(0, -2, 0.2);
+                this.scene.add(this.catMesh);
+            }
+
+            setCatTextureSprite(row, col) {
+                // Map coordinates row: 0-3 (top-to-bottom), col: 0-3 (left-to-right)
+                this.catTexture.offset.set(col * 0.25, (3 - row) * 0.25);
+            }
+
+            setupInput() {
+                // Keyboard
+                window.addEventListener('keydown', (e) => {
+                    if (this.state !== 'PLAYING') return;
+                    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                        this.catTargetX = Math.max(-2.8, this.catTargetX - 1.4);
+                        SOUND.playSFX('lean');
+                        this.logAudioEvent('lean');
+                    }
+                    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                        this.catTargetX = Math.min(2.8, this.catTargetX + 1.4);
+                        SOUND.playSFX('lean');
+                        this.logAudioEvent('lean');
+                    }
+                });
+
+                // Screen Overlay buttons
+                document.getElementById('btn-left').addEventListener('pointerdown', () => {
+                    if (this.state !== 'PLAYING') return;
+                    this.catTargetX = Math.max(-2.8, this.catTargetX - 1.4);
+                    SOUND.playSFX('lean');
+                    this.logAudioEvent('lean');
+                });
+                document.getElementById('btn-right').addEventListener('pointerdown', () => {
+                    if (this.state !== 'PLAYING') return;
+                    this.catTargetX = Math.min(2.8, this.catTargetX + 1.4);
+                    SOUND.playSFX('lean');
+                    this.logAudioEvent('lean');
+                });
+            }
+
+            resetGame() {
+                this.score = 0;
+                this.distance = 0;
+                this.cansCollected = 0;
+                this.maxCombo = 1;
+                this.currentCombo = 1;
+                this.comboTimer = 0;
+                this.lives = 3;
+                this.catX = 0;
+                this.catTargetX = 0;
+                this.distanceCovered = 0;
+                this.mudFactor = 0;
+                this.shieldActive = false;
+                this.boostActive = false;
+                this.boostTimer = 0;
+                this.activeBiome = BIOMES.SUNLIT_FERN;
+                this.state = 'PLAYING';
+                this.runStartTime = Date.now();
+                this.audioEvents = [];
+                this.history = [];
+
+                // Clear active entities
+                this.entities.forEach(ent => this.scene.remove(ent.mesh));
+                this.entities = [];
+
+                SOUND.setBiome(this.activeBiome.id);
+                SOUND.startBGM();
+                document.getElementById('mobile-controls').style.display = 'flex';
+            }
+
+            spawnEntity() {
+                // Random item spawning
+                const types = [
+                    'tuna-can', 'premium-can', 'mystery-can', 'catnip', 
+                    'yarn-shield', 'rock', 'fallen-log', 'bramble', 'cool-cucumber'
+                ];
+                const weights = [0.25, 0.1, 0.05, 0.1, 0.08, 0.18, 0.12, 0.07, 0.05];
+                
+                // Weighted selection
+                let rand = Math.random();
+                let chosenType = 'tuna-can';
+                let sum = 0;
+                for (let i = 0; i < types.length; i++) {
+                    sum += weights[i];
+                    if (rand < sum) {
+                        chosenType = types[i];
+                        break;
+                    }
+                }
+
+                // Create entity mesh
+                const isObstacle = ['rock', 'fallen-log', 'bramble', 'cool-cucumber'].includes(chosenType);
+                let geometry, materialColor;
+
+                if (chosenType === 'rock') {
+                    geometry = new THREE.DodecahedronGeometry(0.7);
+                    materialColor = 0x7f8c8d;
+                } else if (chosenType === 'fallen-log') {
+                    geometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
+                    materialColor = 0xa0522d;
+                } else if (chosenType === 'bramble') {
+                    geometry = new THREE.BoxGeometry(2, 0.2, 2);
+                    materialColor = 0x4a148c;
+                } else if (chosenType === 'cool-cucumber') {
+                    geometry = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 8);
+                    materialColor = 0x27ae60;
+                } else {
+                    // Small spinning food/powerup cylinders
+                    geometry = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 8);
+                    materialColor = chosenType.includes('can') ? 0xffdd59 : 0xec4899;
+                }
+
+                const mat = new THREE.MeshStandardMaterial({
+                    color: materialColor,
+                    roughness: 0.8,
+                    metalness: chosenType.includes('can') ? 0.8 : 0.1
+                });
+                const mesh = new THREE.Mesh(geometry, mat);
+
+                // Rotate logs horizontally
+                if (chosenType === 'fallen-log') mesh.rotation.z = Math.PI / 2;
+
+                const lanePositions = [-2.4, -1.2, 0, 1.2, 2.4];
+                const xPos = lanePositions[Math.floor(Math.random() * lanePositions.length)];
+
+                mesh.position.set(xPos, 20, 0.3);
+                this.scene.add(mesh);
+
+                this.entities.push({
+                    mesh: mesh,
+                    type: chosenType,
+                    x: xPos,
+                    y: 20,
+                    isObstacle: isObstacle,
+                    gathered: false
+                });
+            }
+
+            triggerCuteEnding() {
+                this.state = 'ENDING';
+                SOUND.stopBGM();
+                SOUND.playSFX('gameover');
+                this.logAudioEvent('gameover');
+
+                // Determine safe cute ending based on final biome
+                if (this.activeBiome === BIOMES.SUNLIT_FERN) this.selectedEnding = ENDINGS[4]; // cardboard box
+                else if (this.activeBiome === BIOMES.RAINY_CREEK) this.selectedEnding = ENDINGS[1]; // mud splat
+                else if (this.activeBiome === BIOMES.GLOWROOT_HOLLOW) this.selectedEnding = ENDINGS[8]; // ufo
+                else if (this.activeBiome === BIOMES.KOI_RIVER) this.selectedEnding = ENDINGS[7]; // onsen
+                else this.selectedEnding = ENDINGS[5]; // leaf pile (Japanese maple approach)
+
+                // Animate dynamic tumble in 3D
+                let tumbleTimer = 0;
+                const endLoop = () => {
+                    tumbleTimer += 1;
+                    if (tumbleTimer < 60) {
+                        // Fast rotate and camera zoom in
+                        this.catMesh.rotation.z += 0.15;
+                        this.setCatTextureSprite(3, 0); // Tumble pose
+                        this.camera.position.y += 0.05;
+                        this.camera.position.z -= 0.05;
+                    } else {
+                        // Perfect landing
+                        this.catMesh.rotation.z = 0;
+                        this.setCatTextureSprite(3, 2); // Soft landing smiling pose
+                        
+                        // Switch screen
+                        document.getElementById('mobile-controls').style.display = 'none';
+                        document.getElementById('ending-name').innerText = this.selectedEnding.text;
+                        document.getElementById('res-score').innerText = this.score;
+                        document.getElementById('res-dist').innerText = Math.floor(this.distance) + 'm';
+                        document.getElementById('res-cans').innerText = this.cansCollected;
+                        document.getElementById('res-combo').innerText = this.maxCombo + 'x';
+                        
+                        this.state = 'RESULTS';
+                        showScreen('results-screen');
+                        return;
+                    }
+                    this.renderer.render(this.scene, this.camera);
+                    this.captureState(); // capture final cute frames
+                    requestAnimationFrame(endLoop);
+                };
+                endLoop();
+            }
+
+            captureState() {
+                // Record state history for the deterministic 10s replay exporting
+                const stateSnapshot = {
+                    timeOffset: Date.now() - this.runStartTime,
+                    catX: this.catX,
+                    catTargetX: this.catTargetX,
+                    scrollSpeed: this.scrollSpeed,
+                    score: this.score,
+                    distance: this.distance,
+                    lives: this.lives,
+                    activeBiome: { ...this.activeBiome },
+                    shieldActive: this.shieldActive,
+                    boostActive: this.boostActive,
+                    entities: this.entities.map(ent => ({
+                        type: ent.type,
+                        x: ent.mesh.position.x,
+                        y: ent.mesh.position.y,
+                        z: ent.mesh.position.z,
+                        rotX: ent.mesh.rotation.x,
+                        rotY: ent.mesh.rotation.y,
+                        rotZ: ent.mesh.rotation.z,
+                        isObstacle: ent.isObstacle,
+                        gathered: ent.gathered
+                    })),
+                    bgOffset: this.bgOffset
+                };
+
+                this.history.push(stateSnapshot);
+
+                // Caps to the absolute latest 10 seconds (300 state updates)
+                if (this.history.length > this.maxHistoryLength) {
+                    this.history.shift();
+                }
+            }
+
+            logAudioEvent(type) {
+                this.audioEvents.push({
+                    timeMs: Date.now() - this.runStartTime,
+                    type: type
+                });
+            }
+
+            spawnSplash() {
+                // Particle sparkles
+                for (let i = 0; i < 6; i++) {
+                    const pGeo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+                    const pMat = new THREE.MeshBasicMaterial({ color: 0xffe066 });
+                    const p = new THREE.Mesh(pGeo, pMat);
+                    p.position.set(this.catX, -1, 0.5);
+                    this.scene.add(p);
+                    this.particles.push({
+                        mesh: p,
+                        vx: (Math.random() - 0.5) * 5,
+                        vy: Math.random() * 5 + 2,
+                        vz: Math.random() * 5,
+                        life: 1.0
+                    });
+                }
+            }
+
+            updateParticles(delta) {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.mesh.position.x += p.vx * delta;
+                    p.mesh.position.y += p.vy * delta;
+                    p.mesh.position.z += p.vz * delta;
+                    p.vz -= 9.8 * delta; // simple gravity
+
+                    p.life -= delta * 2;
+                    if (p.life <= 0) {
+                        this.scene.remove(p.mesh);
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(this.animate.bind(this));
+
+                // Aspect ratio fit resizing
+                const w = this.canvas.clientWidth;
+                const h = this.canvas.clientHeight;
+                if (this.canvas.width !== w || this.canvas.height !== h) {
+                    this.renderer.setSize(w, h, false);
+                    this.camera.aspect = w / h;
+                    this.camera.updateProjectionMatrix();
+                    this.hudCanvas.width = w;
+                    this.hudCanvas.height = h;
+                }
+
+                const delta = 0.016; // fixed timestep
+
+                if (this.state === 'PLAYING') {
+                    // Slide Cat horizontally (Smooth lerp)
+                    this.catX += (this.catTargetX - this.catX) * 0.15;
+                    this.catMesh.position.x = this.catX;
+
+                    // Animate visual poses
+                    if (Math.abs(this.catTargetX - this.catX) > 0.4) {
+                        if (this.catTargetX < this.catX) this.setCatTextureSprite(0, 1); // lean left
+                        else this.setCatTextureSprite(0, 2); // lean right
+                    } else {
+                        // neutral wave or fast fall based on boosts
+                        if (this.boostActive) this.setCatTextureSprite(0, 3); // fast fall
+                        else this.setCatTextureSprite(0, 0); // neutral
+                    }
+
+                    // Powerup Timers
+                    if (this.boostActive) {
+                        this.boostTimer -= delta;
+                        this.scrollSpeed = 35; // high-speed glide
+                        if (this.boostTimer <= 0) this.boostActive = false;
+                        this.spawnSplash(); // trails
+                    } else {
+                        this.scrollSpeed = 15 + Math.floor(this.distance / 100); // progressive scaling
+                    }
+
+                    // Biome Progress & Transition (Every 500 meters)
+                    this.distanceCovered += this.scrollSpeed * delta;
+                    this.distance = this.distanceCovered * 0.1;
+
+                    let targetBiome = BIOMES.SUNLIT_FERN;
+                    if (this.distance > 500) targetBiome = BIOMES.RAINY_CREEK;
+                    if (this.distance > 1000) targetBiome = BIOMES.GLOWROOT_HOLLOW;
+                    if (this.distance > 1500) targetBiome = BIOMES.KOI_RIVER;
+                    if (this.distance > 2000) targetBiome = BIOMES.TORII_MAPLE;
+
+                    if (targetBiome !== this.activeBiome) {
+                        this.activeBiome = targetBiome;
+                        SOUND.setBiome(this.activeBiome.id);
+                        this.scene.fog.color.setHex(this.activeBiome.fogColor);
+                    }
+
+                    // Scroll Background Seamlessly
+                    this.bgOffset -= this.scrollSpeed * delta;
+                    this.bgPlanes.forEach(plane => {
+                        plane.position.y -= this.scrollSpeed * delta;
+                        if (plane.position.y < -15) {
+                            plane.position.y += 50; // warp back to top
+                            // Change colors to match active biome
+                            plane.material.color.set(this.activeBiome.laneColor);
+                        }
+                    });
+
+                    this.walls.forEach(wall => {
+                        wall.position.y -= this.scrollSpeed * delta;
+                        if (wall.position.y < -15) {
+                            wall.position.y += 50;
+                            wall.material.color.set(this.activeBiome.sideColor);
+                        }
+                    });
+
+                    // Mud splash recovery
+                    if (this.mudFactor > 0) {
+                        this.mudFactor -= delta * 0.3;
+                        document.getElementById('mud-overlay').style.opacity = this.mudFactor;
+                    }
+
+                    // Entities management & collision checks
+                    this.spawnTimer += delta;
+                    if (this.spawnTimer > 1.2) {
+                        this.spawnEntity();
+                        this.spawnTimer = 0;
+                    }
+
+                    for (let i = this.entities.length - 1; i >= 0; i--) {
+                        const ent = this.entities[i];
+                        ent.mesh.position.y -= this.scrollSpeed * delta;
+                        ent.mesh.rotation.x += 0.02;
+                        ent.mesh.rotation.y += 0.01;
+
+                        // Check collision with cat
+                        const distY = Math.abs(ent.mesh.position.y - this.catMesh.position.y);
+                        const distX = Math.abs(ent.mesh.position.x - this.catMesh.position.x);
+
+                        if (distY < 1.0 && distX < 1.0 && !ent.gathered) {
+                            ent.gathered = true;
+                            this.scene.remove(ent.mesh);
+                            this.entities.splice(i, 1);
+
+                            if (ent.isObstacle) {
+                                if (this.boostActive) {
+                                    // Invincible smashing!
+                                    this.score += 50;
+                                    SOUND.playSFX('pickup');
+                                    this.logAudioEvent('pickup');
+                                } else if (this.shieldActive) {
+                                    this.shieldActive = false;
+                                    SOUND.playSFX('bump');
+                                    this.logAudioEvent('bump');
+                                } else {
+                                    this.lives -= 1;
+                                    this.mudFactor = 1.0; // splat mud on camera!
+                                    SOUND.playSFX('bump');
+                                    this.logAudioEvent('bump');
+                                    this.spawnSplash();
+
+                                    if (this.lives <= 0) {
+                                        this.triggerCuteEnding();
+                                        return;
+                                    }
+                                }
+                            } else {
+                                // Gather item
+                                if (ent.type === 'tuna-can') {
+                                    this.score += 10 * this.currentCombo;
+                                    this.cansCollected += 1;
+                                    SOUND.playSFX('pickup');
+                                    this.logAudioEvent('pickup');
+                                } else if (ent.type === 'premium-can') {
+                                    this.score += 25 * this.currentCombo;
+                                    this.cansCollected += 1;
+                                    SOUND.playSFX('pickup');
+                                    this.logAudioEvent('pickup');
+                                } else if (ent.type === 'yarn-shield') {
+                                    this.shieldActive = true;
+                                    SOUND.playSFX('shield');
+                                    this.logAudioEvent('shield');
+                                } else if (ent.type === 'catnip') {
+                                    this.boostActive = true;
+                                    this.boostTimer = 5.0; // 5s adrenaline boost
+                                    SOUND.playSFX('boost');
+                                    this.logAudioEvent('boost');
+                                }
+                            }
+                        }
+
+                        // Remove entities past screen
+                        if (ent.mesh.position.y < -10) {
+                            this.scene.remove(ent.mesh);
+                            this.entities.splice(i, 1);
+                        }
+                    }
+
+                    this.updateParticles(delta);
+                    this.renderer.render(this.scene, this.camera);
+                    this.renderHUD();
+                    this.captureState(); // Update 10s history
+                }
+            }
+
+            renderHUD() {
+                const ctx = this.hudCtx;
+                ctx.clearRect(0, 0, this.hudCanvas.width, this.hudCanvas.height);
+
+                // Style fonts
+                ctx.font = "10px 'Press Start 2P'";
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "#3d2314";
+                ctx.shadowBlur = 4;
+
+                // Score Card Top Left
+                ctx.fillText(`SCORE: ${this.score}`, 10, 20);
+                ctx.fillStyle = "#00d2d3";
+                ctx.fillText(`DIST: ${Math.floor(this.distance)}m`, 10, 36);
+
+                // Lives Hearts Top Right
+                ctx.fillStyle = "#ff4757";
+                let hearts = "";
+                for (let i = 0; i < this.lives; i++) hearts += "❤ ";
+                ctx.fillText(`LIVES: ${hearts}`, this.hudCanvas.width - 150, 20);
+
+                // Powerup Status indicators bottom center
+                if (this.shieldActive) {
+                    ctx.fillStyle = "#ff9ff3";
+                    ctx.fillText("[SHIELD ACTIVE]", 20, this.hudCanvas.height - 40);
+                }
+                if (this.boostActive) {
+                    ctx.fillStyle = "#ffd32a";
+                    ctx.fillText(`[BOOST: ${Math.ceil(this.boostTimer)}s]`, 20, this.hudCanvas.height - 24);
+                }
+
+                // Biome sign
+                ctx.fillStyle = "#ff9f43";
+                ctx.fillText(this.activeBiome.name.toUpperCase(), 10, this.hudCanvas.height - 10);
+            }
+        }
+
+
+        /*************************************************************
+         * 5. DETERMINISTIC 10-SECOND REPLAY & VIDEO EXPORTER (MVP)
+         *************************************************************/
+        class ReplayExporter {
+            static async compile(gameEngine) {
+                const history = gameEngine.history;
+                if (!history || history.length === 0) {
+                    alert("No sliding recorded yet! Insert coin to play first.");
+                    return;
+                }
+
+                showScreen('replay-screen');
+                
+                const exportCanvas = document.getElementById('export-canvas');
+                const eCtx = exportCanvas.getContext('2d');
+                eCtx.imageSmoothingEnabled = false;
+
+                const progressBar = document.getElementById('replay-progress-bar');
+                const statusText = document.getElementById('replay-status');
+
+                // Enable Web Audio Stream recording
+                const recordingMime = this.chooseRecordingMimeType();
+                if (!recordingMime) {
+                    statusText.innerText = "Encoding failed: Recording codec unsupported in this browser.";
+                    return;
+                }
+
+                const chunks = [];
+                const videoStream = exportCanvas.captureStream(30);
+                
+                // Fetch Web Audio stream tracks from active chiptune node
+                const audioDest = SOUND.dest;
+                const audioTracks = audioDest ? audioDest.stream.getAudioTracks() : [];
+                
+                const combinedStream = new MediaStream([
+                    ...videoStream.getVideoTracks(),
+                    ...audioTracks
+                ]);
+
+                const recorder = new MediaRecorder(combinedStream, {
+                    mimeType: recordingMime,
+                    videoBitsPerSecond: 4000000
+                });
+
+                recorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+
+                const recordingStopped = new Promise((resolve) => {
+                    recorder.onstop = resolve;
+                });
+
+                // Start real-time rendering compilation
+                recorder.start();
+                
+                const totalFrames = history.length;
+                let frameIndex = 0;
+
+                // Sync BGM scale with initial recorded frame biome
+                if (history[0]) SOUND.setBiome(history[0].activeBiome.id);
+
+                const renderLoop = async () => {
+                    if (frameIndex >= totalFrames) {
+                        recorder.stop();
+                        await recordingStopped;
+                        
+                        // Finalize export
+                        const blob = new Blob(chunks, { type: recordingMime });
+                        this.finalizeReplayUI(blob);
+                        return;
+                    }
+
+                    const state = history[frameIndex];
+                    
+                    // Render deterministic background and overlay frames onto the export canvas
+                    this.drawStateToExportCanvas(eCtx, state, gameEngine);
+
+                    // Sync & trigger SFX sounds dynamically based on timeline events
+                    const currentOffset = state.timeOffset;
+                    gameEngine.audioEvents.forEach(evt => {
+                        const eventDiff = Math.abs(evt.timeMs - currentOffset);
+                        if (eventDiff < 30) { // triggered inside rendering tolerance
+                            SOUND.playSFX(evt.type);
+                        }
+                    });
+
+                    // Update loader progress bar
+                    frameIndex++;
+                    const progress = Math.floor((frameIndex / totalFrames) * 100);
+                    progressBar.style.width = progress + '%';
+                    statusText.innerText = `Making your replay... ${progress}% (${Math.floor(frameIndex/30)} / 10 seconds)`;
+
+                    setTimeout(renderLoop, 1000 / 30);
+                };
+
+                // Trigger render loop sequence
+                setTimeout(renderLoop, 100);
+            }
+
+            static drawStateToExportCanvas(ctx, state, game) {
+                // Clear Canvas
+                ctx.fillStyle = '#1c0e06';
+                ctx.fillRect(0, 0, 720, 1280);
+
+                // 1. Draw Biome-themed Lane background
+                ctx.fillStyle = state.activeBiome.laneColor;
+                ctx.fillRect(100, 0, 520, 1280);
+
+                // 2. Parallax Dirt Streaks and Pebbles
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                for (let i = 0; i < 10; i++) {
+                    const streakY = (state.bgOffset * 30 + i * 150) % 1280;
+                    ctx.fillRect(150 + (i * 40) % 400, streakY, 8, 80);
+                }
+
+                // 3. Render Spawns (drawn as low-poly pixel representations)
+                state.entities.forEach(ent => {
+                    if (ent.gathered) return;
+                    const screenY = 1280 - ((ent.y + 10) / 30) * 1280;
+                    const screenX = 360 + (ent.x / 4) * 520;
+
+                    // Draw prop based on atlas mapping coordinates
+                    ctx.drawImage(
+                        ATL_CANVASES.props,
+                        0, 0, CONFIG.spriteSize, CONFIG.spriteSize, // source first frame
+                        screenX - 24, screenY - 24, 48, 48
+                    );
+                });
+
+                // 4. Render sliding Cat (Character atlas mapped)
+                const catScreenX = 360 + (state.catX / 4) * 520;
+                const catScreenY = 1280 - ((-2 + 10) / 30) * 1280;
+
+                // Render matching sprite
+                ctx.drawImage(
+                    ATL_CANVASES.character,
+                    0, 0, CONFIG.spriteSize, CONFIG.spriteSize,
+                    catScreenX - 48, catScreenY - 48, 96, 96
+                );
+
+                // 5. Drawing Replay Cozy wooden frame on top (Asset specs)
+                ctx.drawImage(ATL_CANVASES.replayFrame, 0, 0, 720, 1280);
+
+                // 6. Draw dynamic HUD text onto the canvas stream
+                ctx.font = "24px 'Press Start 2P'";
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "left";
+                ctx.fillText(`SCORE: ${state.score}`, 60, 180);
+                ctx.fillStyle = "#ffdd59";
+                ctx.fillText(`DIST: ${Math.floor(state.distance)}m`, 60, 220);
+
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#ff4757";
+                ctx.fillText(`BIOME: ${state.activeBiome.name.toUpperCase()}`, 720/2, 1280 - 150);
+            }
+
+            static finalizeReplayUI(blob) {
+                const statusText = document.getElementById('replay-status');
+                const videoContainer = document.getElementById('video-container');
+                const videoPlayer = document.getElementById('video-player');
+                const btnShare = document.getElementById('btn-share-video');
+                const btnDownload = document.getElementById('btn-download-video');
+
+                statusText.innerText = "Replay compiled! Tap below to share the cozy video.";
+                videoContainer.style.display = 'block';
+
+                const videoURL = URL.createObjectURL(blob);
+                videoPlayer.src = videoURL;
+
+                // Share button trigger (using Web Share API and Download fallbacks)
+                btnShare.disabled = false;
+                btnShare.onclick = () => this.shareVideo(blob);
+
+                btnDownload.disabled = false;
+                btnDownload.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = videoURL;
+                    a.download = `nekorogaru-slide-replay.webm`;
+                    a.click();
+                };
+            }
+
+            static shareVideo(blob) {
+                const file = new File([blob], "nekorogaru-replay.webm", { type: blob.type });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: "My Neko Rogaru sliding replay!",
+                        text: "Antigravity Slide. Nine lives. No brakes!"
+                    }).catch(err => console.log("Share aborted: ", err));
+                } else {
+                    alert("Native sharing not supported in this browser. Downloading directly to disk!");
+                    document.getElementById('btn-download-video').click();
+                }
+            }
+
+            static chooseRecordingMimeType() {
+                const candidates = [
+                    "video/webm;codecs=vp9,opus",
+                    "video/webm;codecs=vp8,opus",
+                    "video/webm",
+                    "video/mp4"
+                ];
+                return candidates.find(type => MediaRecorder.isTypeSupported(type)) || null;
+            }
+        }
+
+
+        /*************************************************************
+         * 6. NAVIGATION & INITIATORS
+         *************************************************************/
+        const screens = [
+            'title-screen', 'instructions-screen', 'atlas-viewer-screen', 
+            'pause-screen', 'results-screen', 'replay-screen'
+        ];
+
+        function showScreen(screenId) {
+            screens.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Initialize elements and bind buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generate atlases programmatically at boot!
+            PixelArtEngine.init();
+
+            // Fire up active game world
+            const game = new GameEngine();
+
+            document.getElementById('btn-play').addEventListener('click', () => {
+                showScreen('title-screen'); // Hide title
+                document.getElementById('title-screen').classList.remove('active');
+                game.resetGame();
+            });
+
+            document.getElementById('btn-view-atlases').addEventListener('click', () => {
+                showScreen('atlas-viewer-screen');
+            });
+
+            document.getElementById('btn-atlas-back').addEventListener('click', () => {
+                showScreen('title-screen');
+            });
+
+            document.getElementById('btn-show-instructions').addEventListener('click', () => {
+                showScreen('instructions-screen');
+            });
+
+            document.getElementById('btn-instructions-back').addEventListener('click', () => {
+                showScreen('title-screen');
+            });
+
+            // Replay screen button triggers
+            document.getElementById('btn-trigger-replay').addEventListener('click', () => {
+                ReplayExporter.compile(game);
+            });
+
+            document.getElementById('btn-results-retry').addEventListener('click', () => {
+                game.resetGame();
+            });
+
+            document.getElementById('btn-results-home').addEventListener('click', () => {
+                showScreen('title-screen');
+            });
+
+            document.getElementById('btn-replay-back').addEventListener('click', () => {
+                game.resetGame();
+            });
+        });
+    </script>
+    <script src="game-overrides.js"></script>
+</body>
+</html>

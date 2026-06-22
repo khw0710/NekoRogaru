@@ -1,6 +1,6 @@
 # Neko Rogaru
 
-A visual and product-design kit for a cute portrait browser game inspired by the famous four-paws-up sliding cat pose.
+A playable Three.js prototype and visual-design kit for a cute portrait browser game inspired by the famous four-paws-up sliding cat pose.
 
 ![Gameplay art direction](assets/generated/key-art/gameplay-key-art.png)
 
@@ -14,10 +14,16 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Transparent social-video replay frame
 - Machine-readable asset manifest
 - Complete game requirements and browser video-export specification
+- Playable portrait Three.js prototype with drag/touch steering
+- Five cycling biomes plus time, weather, and seasonal variations
+- Nine-life encounter system, discoveries, pickups, hazards, and cute endings
+- Ten-second vertical WebM replay export at the end of each run
 - Static visual preview page
 
 ## Start here
 
+- [`index.html`](index.html) — playable game prototype
+- [`game-overrides.js`](game-overrides.js) — production art, touch input, falling world, encounter, and replay integration
 - [`asset-preview.html`](asset-preview.html) — visual asset board
 - [`GAME-REQUIREMENTS.md`](GAME-REQUIREMENTS.md) — consolidated product specification
 - [`VIDEO-EXPORT-SPEC.md`](VIDEO-EXPORT-SPEC.md) — ten-second Canvas replay architecture
@@ -27,7 +33,15 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 
 ## Repository status
 
-This repository currently contains the complete visual/content foundation. The gameplay engine is intentionally not implemented yet.
+The repository now contains a first playable engine integration. Open it through a local HTTP server rather than directly from the filesystem so Three.js and the image assets load consistently:
+
+```sh
+python3 -m http.server 4173
+```
+
+Then visit `http://localhost:4173/`. Drag the cat horizontally with a finger or pointer; arrow keys and A/D remain as desktop fallbacks.
+
+This is an art-and-interaction prototype, not final game balancing. The next pass should focus on encounter pacing, biome-specific spawn tables, animation polish, mobile performance, audio, and cross-browser replay export testing.
 
 ## Asset utilities
 
