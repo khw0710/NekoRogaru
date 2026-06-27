@@ -15,6 +15,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Machine-readable asset manifest
 - Complete game requirements and browser video-export specification
 - Playable portrait Three.js prototype with drag/touch steering
+- Language selector for English, Japanese, and Traditional Chinese UI
 - Five cycling biomes plus time, weather, and seasonal variations
 - Nine-life encounter system, discoveries, pickups, hazards, and cute endings
 - Catchable branch rest stops with swipe-to-release interaction

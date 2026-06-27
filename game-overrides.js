@@ -63,6 +63,469 @@ var NEKO_ASSETS = {
     }
 };
 
+var NEKO_LANG_KEY = 'neko-rogaru-language';
+
+var NEKO_TRANSLATIONS = {
+    en: {
+        documentTitle: 'Neko Rogaru: Endless Tumble',
+        ui: {
+            marquee: '▼ ENDLESS TUMBLE ▼',
+            subtitle: 'Nine Lives. No Brakes.',
+            blurb: 'The adorable tabby cat slides rapidly down a steep forest dirt chute on her back!',
+            language: 'LANGUAGE',
+            start: 'START FALLING',
+            atlasButton: 'ATLAS VIEWER',
+            howToPlay: 'HOW TO PLAY',
+            buildNote: 'DRAG-TO-STEER BUILD · FIVE PLACES · CHANGING WEATHER',
+            backToMenu: 'BACK TO MENU',
+            quitToMenu: 'QUIT TO MENU'
+        },
+        instructions: {
+            drag: '▲ <b>Drag your finger</b> anywhere on the trail to steer.',
+            keyboard: '▲ Keyboard players can use <b>LEFT/RIGHT</b> or <b>A/D</b>.',
+            pickups: '▲ Grab <b>Tuna Cans</b> and <b>Sardines</b> for points.',
+            dodge: '▲ Dodge <b>Rocks, Logs, Brambles,</b> and <b>Cucumbers</b>!',
+            powerups: '▲ Snatch <b>Yarn Shields</b> or <b>Feather Boosts</b>!',
+            branch: '▲ Catch a <b>Springy Branch</b> to rest; swipe left or right when you are ready to drop.',
+            difficulty: '▲ Logs and brambles hurt twice. The trail gets faster and busier as you fall.',
+            discovery: '▲ Keep falling to discover rivers, caves, torii paths, seasons, and weather.'
+        },
+        atlas: {
+            title: 'NEKO SPRITE ATLASES',
+            description: 'The production pixel-art atlases used by the game.',
+            cat: 'Cat Sprite Atlas (4x4)',
+            props: 'Props Sprite Atlas (6x6)',
+            environment: 'Environment Atlas (5x5)',
+            ui: 'UI Elements Atlas (5x5)',
+            weather: 'Season & Weather (6x6)',
+            endings: 'Adorable Endings Atlas (4x4)'
+        },
+        pause: {
+            title: 'SLIDE PAUSED',
+            resume: 'RESUME',
+            restart: 'RESTART'
+        },
+        results: {
+            title: 'SPLACK!',
+            score: 'SCORE:',
+            distance: 'DISTANCE:',
+            cans: 'CANS:',
+            discoveries: 'DISCOVERIES:',
+            generateReplay: 'GENERATE 10S REPLAY',
+            tryAgain: 'TRY AGAIN',
+            foundCount: '{count} found'
+        },
+        replay: {
+            title: 'COZY REPLAY STUDIO',
+            initial: 'Preparing your final 10 seconds as a 720 × 1280 portrait video...',
+            preparing: 'Preparing final 10 seconds · 720 × 1280 portrait',
+            unsupported: 'This browser cannot encode a shareable video.',
+            rendering: 'Rendering final 10 seconds · {seconds} / 10',
+            ready: 'Final 10 seconds ready · 720 × 1280 portrait',
+            share: 'SHARE REPLAY',
+            download: 'DOWNLOAD VIDEO',
+            playAgain: 'PLAY AGAIN',
+            note: 'Supports native OS Share sheet with video format. Fallback is standard disk download.',
+            noTumble: 'No tumble recorded yet! Play a run first.',
+            shareTitle: 'My Neko Rogaru ending!',
+            shareText: 'Nine lives. No brakes. Here are my final ten seconds.'
+        },
+        gesture: {
+            drag: 'DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU',
+            branch: 'BRANCH BREAK!<br>SWIPE LEFT OR RIGHT TO LET GO'
+        },
+        moments: {
+            restStop: 'A PERFECTLY GOOD REST STOP',
+            backToFalling: 'AND... BACK TO FALLING!',
+            whoosh: 'WHOOSH! TOO FAST TO BONK',
+            shieldSaved: 'YARN SHIELD SAVED A LIFE',
+            bonk: 'BONK! {damage} {unit} TUMBLED AWAY',
+            lifeOne: 'LIFE',
+            lifeMany: 'LIVES',
+            tuna: 'TUNA! +1 LIFE',
+            premium: 'PREMIUM DINNER! +2 LIVES',
+            yarn: 'SOFT YARN SHIELD',
+            catnip: 'CATNIP ZOOMIES',
+            discovered: 'NEW CUTE MOMENT DISCOVERED!'
+        },
+        hud: {
+            dist: 'DIST',
+            score: 'SCORE',
+            lives: 'LIVES',
+            found: 'FOUND',
+            shieldActive: 'SHIELD ACTIVE',
+            boost: 'BOOST: {seconds}s'
+        },
+        biomes: {
+            'sunlit-fern-run': 'Sunlit Fern Run',
+            'rainy-creek-run': 'Rainy Creek Run',
+            'glowroot-hollow': 'Glowroot Hollow',
+            'koi-river-rush': 'Koi River Rush',
+            'torii-maple-descent': 'Torii Maple Descent'
+        },
+        time: { MORNING: 'MORNING', NOON: 'NOON', SUNSET: 'SUNSET', NIGHT: 'NIGHT' },
+        seasons: { SPRING: 'SPRING', SUMMER: 'SUMMER', AUTUMN: 'AUTUMN', WINTER: 'WINTER' },
+        weather: { CLEAR: 'CLEAR', BREEZE: 'BREEZE', DRIZZLE: 'DRIZZLE', MIST: 'MIST', SNOW: 'SNOW' },
+        endings: {
+            'ending-rock-bonk': 'STYLISH CRASH BONK!',
+            'ending-mud-splat': 'GLORIOUS MUD SPLAT!',
+            'ending-river-splash': 'REFRESHING RIVER SPLASH!',
+            'ending-bramble-hammock': 'COZY BRAMBLE HAMMOCK!',
+            'ending-cardboard-box': 'DELIVERED IN A BOX!',
+            'ending-leaf-pile': 'AUTUMN LEAF DIVE!',
+            'ending-futon': 'PERFECT FUTON COMA!',
+            'ending-onsen': 'STEAMY ONSEN SOAK!',
+            'ending-ufo': 'UFO ABDUCTION SPLASH!',
+            'ending-tanuki-rescue': 'TANUKI WOODS RESCUE!',
+            'ending-snowbank': 'POWDER SNOW CRUNCH!',
+            'ending-shrine-bell': 'SACRED BELL CLANG!',
+            'ending-koi-ride': 'KOI RIVER SAFARI!',
+            'ending-mushroom-umbrella': 'MUSHROOM UMBRELLA SHIELD!',
+            'ending-goalkeeper': 'WORLD-CLASS SOCCER SAVE!',
+            'ending-golden-cans': 'INFINITE TUNA CAN MOUNTAIN!'
+        }
+    },
+    ja: {
+        documentTitle: 'ネコロガル：エンドレスころころ',
+        ui: {
+            marquee: '▼ エンドレスころころ ▼',
+            subtitle: '九つの命。ブレーキなし。',
+            blurb: 'かわいいトラねこが、森の急な土すべり道を仰向けでころころ落ちていきます！',
+            language: '言語',
+            start: 'ころがり開始',
+            atlasButton: 'アトラスを見る',
+            howToPlay: 'あそびかた',
+            buildNote: 'ドラッグ操作 · 5つの場所 · 変わる天気',
+            backToMenu: 'メニューへ戻る',
+            quitToMenu: 'メニューへ'
+        },
+        instructions: {
+            drag: '▲ 道の上で<b>指をドラッグ</b>して左右に動かします。',
+            keyboard: '▲ キーボードは<b>左右キー</b>または<b>A/D</b>で操作できます。',
+            pickups: '▲ <b>ツナ缶</b>や<b>イワシ</b>を集めてスコアアップ。',
+            dodge: '▲ <b>岩、丸太、いばら、きゅうり</b>をよけましょう！',
+            powerups: '▲ <b>毛糸シールド</b>や<b>羽ブースト</b>を見つけましょう！',
+            branch: '▲ <b>しなる枝</b>をつかむと休めます。落ちる時は左右にスワイプ。',
+            difficulty: '▲ 丸太といばらは2ダメージ。落ちるほど速く、にぎやかになります。',
+            discovery: '▲ 川、洞窟、鳥居の道、季節、天気をどんどん発見しましょう。'
+        },
+        atlas: {
+            title: 'ネコのスプライト集',
+            description: 'ゲームで使うピクセルアート素材です。',
+            cat: 'ネコ スプライト (4x4)',
+            props: 'アイテム スプライト (6x6)',
+            environment: '背景パーツ (5x5)',
+            ui: 'UIパーツ (5x5)',
+            weather: '季節と天気 (6x6)',
+            endings: 'かわいい結末 (4x4)'
+        },
+        pause: {
+            title: '一時停止中',
+            resume: 'つづける',
+            restart: 'やりなおす'
+        },
+        results: {
+            title: 'すってん！',
+            score: 'スコア:',
+            distance: '距離:',
+            cans: '缶:',
+            discoveries: '発見:',
+            generateReplay: '10秒リプレイ作成',
+            tryAgain: 'もう一回',
+            foundCount: '{count}件発見'
+        },
+        replay: {
+            title: 'ほっこりリプレイ工房',
+            initial: '最後の10秒を720×1280の縦動画に準備中...',
+            preparing: '最後の10秒を準備中 · 720×1280 縦動画',
+            unsupported: 'このブラウザでは共有用動画を作成できません。',
+            rendering: '最後の10秒を書き出し中 · {seconds} / 10',
+            ready: '最後の10秒が完成 · 720×1280 縦動画',
+            share: 'リプレイ共有',
+            download: '動画保存',
+            playAgain: 'もう一回',
+            note: 'OSの共有シートに対応。使えない場合は通常のダウンロードになります。',
+            noTumble: 'まだ記録がありません。先に1回あそんでください。',
+            shareTitle: 'ネコロガルの結末！',
+            shareText: '九つの命。ブレーキなし。最後の10秒です。'
+        },
+        gesture: {
+            drag: '指でドラッグ<br>世界が上へ流れていく',
+            branch: '枝がしなる！<br>左右にスワイプして手を離す'
+        },
+        moments: {
+            restStop: 'ちょうどいい休憩枝！',
+            backToFalling: 'そして…また落下！',
+            whoosh: 'ビュン！速すぎて当たらない',
+            shieldSaved: '毛糸シールドが命を守った',
+            bonk: 'ごつん！ {damage} {unit} なくなった',
+            lifeOne: 'ライフ',
+            lifeMany: 'ライフ',
+            tuna: 'ツナ！ ライフ+1',
+            premium: 'ごちそう缶！ ライフ+2',
+            yarn: 'ふわふわ毛糸シールド',
+            catnip: 'マタタビ爆走！',
+            discovered: '新しいかわいい瞬間を発見！'
+        },
+        hud: {
+            dist: '距離',
+            score: 'スコア',
+            lives: '命',
+            found: '発見',
+            shieldActive: 'シールド中',
+            boost: 'ブースト: {seconds}秒'
+        },
+        biomes: {
+            'sunlit-fern-run': '木漏れ日のシダ道',
+            'rainy-creek-run': '雨の小川道',
+            'glowroot-hollow': '光る根っこの洞',
+            'koi-river-rush': '鯉の川すべり',
+            'torii-maple-descent': '鳥居ともみじ坂'
+        },
+        time: { MORNING: '朝', NOON: '昼', SUNSET: '夕暮れ', NIGHT: '夜' },
+        seasons: { SPRING: '春', SUMMER: '夏', AUTUMN: '秋', WINTER: '冬' },
+        weather: { CLEAR: '晴れ', BREEZE: 'そよ風', DRIZZLE: '小雨', MIST: '霧', SNOW: '雪' },
+        endings: {
+            'ending-rock-bonk': 'おしゃれにゴツン！',
+            'ending-mud-splat': 'どろんこ着地！',
+            'ending-river-splash': '川へざぶん！',
+            'ending-bramble-hammock': 'いばらハンモック！',
+            'ending-cardboard-box': '箱入りネコ便！',
+            'ending-leaf-pile': '落ち葉へダイブ！',
+            'ending-futon': 'ふとんで即寝！',
+            'ending-onsen': '湯けむり温泉！',
+            'ending-ufo': 'UFOに連れ去られた！',
+            'ending-tanuki-rescue': 'たぬきの森レスキュー！',
+            'ending-snowbank': 'ふかふか雪だまり！',
+            'ending-shrine-bell': '神社の鈴がカーン！',
+            'ending-koi-ride': '鯉に乗って川下り！',
+            'ending-mushroom-umbrella': 'きのこ傘ガード！',
+            'ending-goalkeeper': '名ゴールキーパー！',
+            'ending-golden-cans': '黄金ツナ缶の山！'
+        }
+    },
+    'zh-Hant': {
+        documentTitle: 'Neko Rogaru：無盡滾落',
+        ui: {
+            marquee: '▼ 無盡滾落 ▼',
+            subtitle: '九條命。沒有煞車。',
+            blurb: '可愛虎斑貓仰躺著，沿著森林泥土斜坡一路滑下去！',
+            language: '語言',
+            start: '開始滾落',
+            atlasButton: '查看素材圖集',
+            howToPlay: '玩法說明',
+            buildNote: '拖曳控制 · 五個地點 · 變化天氣',
+            backToMenu: '返回選單',
+            quitToMenu: '回到選單'
+        },
+        instructions: {
+            drag: '▲ 在山徑上<b>拖曳手指</b>來左右移動。',
+            keyboard: '▲ 鍵盤玩家可以用<b>左右鍵</b>或<b>A/D</b>。',
+            pickups: '▲ 收集<b>鮪魚罐</b>和<b>沙丁魚</b>拿分。',
+            dodge: '▲ 閃開<b>石頭、木頭、荊棘</b>和<b>小黃瓜</b>！',
+            powerups: '▲ 撿起<b>毛線護盾</b>或<b>羽毛加速</b>！',
+            branch: '▲ 抓住<b>彈性樹枝</b>可以休息；準備好了就左右滑動放手。',
+            difficulty: '▲ 木頭和荊棘會扣兩點生命。越往下越快，也越熱鬧。',
+            discovery: '▲ 一路發現河流、洞穴、鳥居小路、季節和天氣。'
+        },
+        atlas: {
+            title: '貓咪像素素材圖集',
+            description: '遊戲使用的正式像素美術素材。',
+            cat: '貓咪動作圖集 (4x4)',
+            props: '道具圖集 (6x6)',
+            environment: '環境圖集 (5x5)',
+            ui: '介面元素 (5x5)',
+            weather: '季節與天氣 (6x6)',
+            endings: '可愛結局圖集 (4x4)'
+        },
+        pause: {
+            title: '暫停滾落',
+            resume: '繼續',
+            restart: '重新開始'
+        },
+        results: {
+            title: '啪嘰！',
+            score: '分數:',
+            distance: '距離:',
+            cans: '罐罐:',
+            discoveries: '發現:',
+            generateReplay: '產生10秒重播',
+            tryAgain: '再玩一次',
+            foundCount: '發現 {count} 個'
+        },
+        replay: {
+            title: '溫暖重播工作室',
+            initial: '正在把最後10秒準備成720×1280直式影片...',
+            preparing: '準備最後10秒 · 720×1280直式影片',
+            unsupported: '這個瀏覽器無法輸出可分享影片。',
+            rendering: '輸出最後10秒 · {seconds} / 10',
+            ready: '最後10秒完成 · 720×1280直式影片',
+            share: '分享重播',
+            download: '下載影片',
+            playAgain: '再玩一次',
+            note: '支援系統分享選單；不支援時會改為一般下載。',
+            noTumble: '還沒有滾落紀錄！請先玩一場。',
+            shareTitle: '我的 Neko Rogaru 結局！',
+            shareText: '九條命。沒有煞車。這是我的最後10秒。'
+        },
+        gesture: {
+            drag: '拖曳手指<br>世界會從身邊往上流過',
+            branch: '樹枝撐住了！<br>左右滑動就會放手'
+        },
+        moments: {
+            restStop: '完美的休息樹枝',
+            backToFalling: '然後…繼續滾！',
+            whoosh: '咻！快到撞不到',
+            shieldSaved: '毛線護盾救了一命',
+            bonk: '碰！失去 {damage} {unit}',
+            lifeOne: '條命',
+            lifeMany: '條命',
+            tuna: '鮪魚！生命+1',
+            premium: '豪華晚餐！生命+2',
+            yarn: '柔軟毛線護盾',
+            catnip: '貓薄荷暴衝！',
+            discovered: '發現新的可愛瞬間！'
+        },
+        hud: {
+            dist: '距離',
+            score: '分數',
+            lives: '生命',
+            found: '發現',
+            shieldActive: '護盾中',
+            boost: '加速: {seconds}秒'
+        },
+        biomes: {
+            'sunlit-fern-run': '陽光蕨葉山徑',
+            'rainy-creek-run': '雨中溪流小路',
+            'glowroot-hollow': '發光樹根洞窟',
+            'koi-river-rush': '錦鯉急流',
+            'torii-maple-descent': '鳥居楓葉坡道'
+        },
+        time: { MORNING: '早晨', NOON: '正午', SUNSET: '夕陽', NIGHT: '夜晚' },
+        seasons: { SPRING: '春天', SUMMER: '夏天', AUTUMN: '秋天', WINTER: '冬天' },
+        weather: { CLEAR: '晴朗', BREEZE: '微風', DRIZZLE: '細雨', MIST: '薄霧', SNOW: '下雪' },
+        endings: {
+            'ending-rock-bonk': '帥氣撞石頭！',
+            'ending-mud-splat': '華麗泥巴啪嘰！',
+            'ending-river-splash': '清爽河水飛濺！',
+            'ending-bramble-hammock': '荊棘吊床！',
+            'ending-cardboard-box': '紙箱宅配成功！',
+            'ending-leaf-pile': '秋葉堆跳水！',
+            'ending-futon': '完美棉被昏睡！',
+            'ending-onsen': '熱呼呼溫泉！',
+            'ending-ufo': 'UFO抱走貓咪！',
+            'ending-tanuki-rescue': '狸貓森林救援！',
+            'ending-snowbank': '鬆軟雪堆著陸！',
+            'ending-shrine-bell': '神社鈴鐺噹！',
+            'ending-koi-ride': '錦鯉河流巡航！',
+            'ending-mushroom-umbrella': '蘑菇傘護盾！',
+            'ending-goalkeeper': '世界級守門員！',
+            'ending-golden-cans': '無限黃金鮪魚山！'
+        }
+    }
+};
+
+function nekoLookup(path, language) {
+    var table = NEKO_TRANSLATIONS[language] || NEKO_TRANSLATIONS.en;
+    return path.split('.').reduce(function (value, segment) {
+        return value && value[segment] !== undefined ? value[segment] : undefined;
+    }, table);
+}
+
+function nekoInterpolate(text, values) {
+    return String(text).replace(/\{(\w+)\}/g, function (_, key) {
+        return values && values[key] !== undefined ? values[key] : '';
+    });
+}
+
+function nekoCurrentLanguage() {
+    return window.NEKO_LANGUAGE || 'en';
+}
+
+function nekoT(path, values, fallback) {
+    var language = nekoCurrentLanguage();
+    var text = nekoLookup(path, language);
+    if (text === undefined && language !== 'en') text = nekoLookup(path, 'en');
+    if (text === undefined) text = fallback === undefined ? path : fallback;
+    return nekoInterpolate(text, values);
+}
+
+function nekoFont(size) {
+    return nekoCurrentLanguage() === 'en'
+        ? size + "px 'Press Start 2P'"
+        : size + 'px "Hiragino Sans", "Yu Gothic", "PingFang TC", "Noto Sans CJK TC", system-ui, sans-serif';
+}
+
+function nekoUpper(text) {
+    return nekoCurrentLanguage() === 'en' ? String(text).toUpperCase() : String(text);
+}
+
+function nekoNamed(category, key, fallback) {
+    return nekoT(category + '.' + key, {}, fallback || key);
+}
+
+function nekoBiomeName(biome) {
+    return nekoNamed('biomes', biome && biome.id, biome && biome.name ? biome.name : '');
+}
+
+function nekoEndingName(ending) {
+    return nekoNamed('endings', ending && ending.id, ending && ending.text ? ending.text : '');
+}
+
+function nekoApplyStaticTranslations() {
+    var lang = nekoCurrentLanguage();
+    document.documentElement.lang = lang;
+    document.body?.classList.toggle('lang-ja', lang === 'ja');
+    document.body?.classList.toggle('lang-zh-Hant', lang === 'zh-Hant');
+    document.title = nekoT('documentTitle');
+    document.querySelectorAll('[data-i18n]').forEach(function (node) {
+        node.textContent = nekoT(node.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (node) {
+        node.innerHTML = nekoT(node.dataset.i18nHtml);
+    });
+    var select = document.getElementById('language-select');
+    if (select) {
+        select.value = lang;
+        select.setAttribute('aria-label', nekoT('ui.language'));
+    }
+}
+
+function nekoSetLanguage(lang) {
+    window.NEKO_LANGUAGE = NEKO_TRANSLATIONS[lang] ? lang : 'en';
+    try { localStorage.setItem(NEKO_LANG_KEY, window.NEKO_LANGUAGE); } catch (error) {}
+    nekoApplyStaticTranslations();
+}
+
+try {
+    window.NEKO_LANGUAGE = localStorage.getItem(NEKO_LANG_KEY) || 'en';
+} catch (error) {
+    window.NEKO_LANGUAGE = 'en';
+}
+if (!NEKO_TRANSLATIONS[window.NEKO_LANGUAGE]) window.NEKO_LANGUAGE = 'en';
+window.NEKO_I18N = {
+    setLanguage: nekoSetLanguage,
+    getLanguage: nekoCurrentLanguage,
+    t: nekoT,
+    apply: nekoApplyStaticTranslations
+};
+
+function nekoBindLanguageSelector() {
+    var select = document.getElementById('language-select');
+    if (!select || select.dataset.bound) return;
+    select.dataset.bound = 'true';
+    select.addEventListener('change', function () {
+        nekoSetLanguage(select.value);
+    });
+    nekoApplyStaticTranslations();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', nekoBindLanguageSelector);
+} else {
+    nekoBindLanguageSelector();
+}
+
 var NEKO_IMAGES = { backgrounds: {}, characters: {}, props: {}, endings: {}, weather: {} };
 var NEKO_TEXTURES = new Map();
 
@@ -525,7 +988,7 @@ GameEngine.prototype.resetGame = function () {
     document.getElementById('screen-area').style.cursor = 'grabbing';
 
     var hint = document.getElementById('gesture-hint');
-    hint.innerHTML = 'DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU';
+    hint.innerHTML = nekoT('gesture.drag');
     hint.style.opacity = '';
     hint.style.display = 'block';
     hint.style.animation = 'none';
@@ -643,10 +1106,10 @@ GameEngine.prototype.beginBranchHang = function () {
     this.scene.add(this.caughtBranch);
 
     var hint = document.getElementById('gesture-hint');
-    hint.innerHTML = 'BRANCH BREAK!<br>SWIPE LEFT OR RIGHT TO LET GO';
+    hint.innerHTML = nekoT('gesture.branch');
     hint.style.display = 'block';
     hint.style.opacity = '1';
-    this.showMoment('A PERFECTLY GOOD REST STOP');
+    this.showMoment(nekoT('moments.restStop'));
     SOUND.playSFX('shield');
     this.logAudioEvent('shield');
 };
@@ -663,9 +1126,9 @@ GameEngine.prototype.releaseBranch = function (direction) {
         this.caughtBranch = null;
     }
     var hint = document.getElementById('gesture-hint');
-    hint.innerHTML = 'DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU';
+    hint.innerHTML = nekoT('gesture.drag');
     hint.style.opacity = '0';
-    this.showMoment('AND... BACK TO FALLING!');
+    this.showMoment(nekoT('moments.backToFalling'));
     this.spawnSplash();
 };
 
@@ -677,14 +1140,14 @@ GameEngine.prototype.resolveEncounter = function (entity) {
     if (entity.isObstacle) {
         if (this.boostActive) {
             this.score += 50;
-            this.showMoment('WHOOSH! TOO FAST TO BONK');
+            this.showMoment(nekoT('moments.whoosh'));
             this.playCatMoment('victory-wave', 0.45);
             SOUND.playSFX('pickup');
             return;
         }
         if (this.shieldActive) {
             this.shieldActive = false;
-            this.showMoment('YARN SHIELD SAVED A LIFE');
+            this.showMoment(nekoT('moments.shieldSaved'));
             this.playCatMoment('worried', 0.55);
             SOUND.playSFX('shield');
             return;
@@ -692,7 +1155,10 @@ GameEngine.prototype.resolveEncounter = function (entity) {
         var damage = entity.type === 'fallen-log' || entity.type === 'bramble' ? 2 : 1;
         this.lives -= damage;
         this.mudFactor = 0.68;
-        this.showMoment('BONK! ' + damage + (damage === 1 ? ' LIFE' : ' LIVES') + ' TUMBLED AWAY');
+        this.showMoment(nekoT('moments.bonk', {
+            damage: damage,
+            unit: nekoT(damage === 1 ? 'moments.lifeOne' : 'moments.lifeMany')
+        }));
         this.playCatMoment('bump', 0.38);
         var self = this;
         setTimeout(function () {
@@ -709,26 +1175,26 @@ GameEngine.prototype.resolveEncounter = function (entity) {
         this.score += 20;
         this.cansCollected += 1;
         this.lives = Math.min(9, this.lives + 1);
-        this.showMoment('TUNA! +1 LIFE');
+        this.showMoment(nekoT('moments.tuna'));
         this.playCatMoment('pickup-happy', 0.62);
     } else if (entity.type === 'premium-can') {
         this.score += 60;
         this.cansCollected += 1;
         this.lives = Math.min(9, this.lives + 2);
-        this.showMoment('PREMIUM DINNER! +2 LIVES');
+        this.showMoment(nekoT('moments.premium'));
         this.playCatMoment('happy-meow', 0.82);
     } else if (entity.type === 'yarn-shield') {
         this.shieldActive = true;
-        this.showMoment('SOFT YARN SHIELD');
+        this.showMoment(nekoT('moments.yarn'));
         this.playCatMoment('victory-wave', 0.72);
     } else if (entity.type === 'catnip') {
         this.boostActive = true;
         this.boostTimer = 4.5;
-        this.showMoment('CATNIP ZOOMIES');
+        this.showMoment(nekoT('moments.catnip'));
     } else {
         this.score += 100;
         this.discoveries += 1;
-        this.showMoment('NEW CUTE MOMENT DISCOVERED!');
+        this.showMoment(nekoT('moments.discovered'));
         this.playCatMoment(this.discoveries % 2 ? 'happy-meow' : 'victory-wave', 0.85);
     }
     SOUND.playSFX('pickup');
@@ -930,12 +1396,12 @@ GameEngine.prototype.triggerCuteEnding = function () {
             return;
         }
 
-        document.getElementById('ending-name').innerText = self.selectedEnding.text;
+        document.getElementById('ending-name').innerText = nekoEndingName(self.selectedEnding);
         document.getElementById('ending-art').src = NEKO_ASSETS.endings[self.selectedEnding.id];
         document.getElementById('res-score').innerText = self.score;
         document.getElementById('res-dist').innerText = Math.floor(self.distance) + 'm';
         document.getElementById('res-cans').innerText = self.cansCollected;
-        document.getElementById('res-combo').innerText = self.discoveries + ' found';
+        document.getElementById('res-combo').innerText = nekoT('results.foundCount', { count: self.discoveries });
         self.state = 'RESULTS';
         showScreen('results-screen');
     }
@@ -1080,7 +1546,7 @@ GameEngine.prototype.animate = function () {
     if (nextBiome !== this.activeBiome) {
         this.activeBiome = nextBiome;
         SOUND.setBiome(nextBiome.id);
-        this.showMoment(nextBiome.name.toUpperCase());
+        this.showMoment(nekoUpper(nekoBiomeName(nextBiome)));
         this.playCatMoment('victory-wave', 0.82);
     }
     this.updateCondition();
@@ -1161,29 +1627,35 @@ GameEngine.prototype.renderHUD = function () {
     ctx.imageSmoothingEnabled = false;
     ctx.shadowColor = '#221e19';
     ctx.shadowBlur = 4;
-    ctx.font = "8px 'Press Start 2P'";
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 8 : 10);
 
     ctx.fillStyle = 'rgba(34,30,25,.72)';
     ctx.fillRect(8, 8, 122, 44);
     ctx.fillRect(width - 146, 8, 138, 44);
     ctx.fillStyle = '#fff4cf';
-    ctx.fillText('DIST ' + Math.floor(this.distance) + 'm', 16, 24);
+    ctx.fillText(nekoT('hud.dist') + ' ' + Math.floor(this.distance) + 'm', 16, 24);
     ctx.fillStyle = '#ffdd59';
-    ctx.fillText('SCORE ' + this.score, 16, 42);
+    ctx.fillText(nekoT('hud.score') + ' ' + this.score, 16, 42);
 
     ctx.fillStyle = '#ffd0bf';
-    ctx.fillText('LIVES ' + '●'.repeat(this.lives), width - 138, 24);
+    ctx.fillText(nekoT('hud.lives') + ' ' + '●'.repeat(this.lives), width - 138, 24);
     ctx.fillStyle = '#9de4d8';
-    ctx.fillText('FOUND ' + this.discoveries, width - 138, 42);
+    ctx.fillText(nekoT('hud.found') + ' ' + this.discoveries, width - 138, 42);
 
     ctx.fillStyle = 'rgba(34,30,25,.76)';
     ctx.fillRect(8, height - 42, width - 16, 32);
     ctx.fillStyle = '#fff4cf';
-    ctx.fillText(this.activeBiome.name.toUpperCase(), 16, height - 23);
+    ctx.fillText(nekoUpper(nekoBiomeName(this.activeBiome)), 16, height - 23);
     ctx.fillStyle = '#b9e2c1';
-    ctx.font = "6px 'Press Start 2P'";
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 6 : 8);
     ctx.textAlign = 'right';
-    ctx.fillText(this.timeName + ' · ' + this.seasonName + ' · ' + this.weatherName, width - 16, height - 23);
+    ctx.fillText(
+        nekoNamed('time', this.timeName) + ' · ' +
+        nekoNamed('seasons', this.seasonName) + ' · ' +
+        nekoNamed('weather', this.weatherName),
+        width - 16,
+        height - 23
+    );
     ctx.textAlign = 'left';
 };
 
@@ -1222,7 +1694,7 @@ ReplayExporter.chooseRecordingMimeType = function () {
 ReplayExporter.compile = async function (gameEngine) {
     var frames = this.buildFinalTenSeconds(gameEngine.history);
     if (!frames.length) {
-        alert('No tumble recorded yet! Play a run first.');
+        alert(nekoT('replay.noTumble'));
         return;
     }
 
@@ -1235,11 +1707,11 @@ ReplayExporter.compile = async function (gameEngine) {
     var progressBar = document.getElementById('replay-progress-bar');
     var statusText = document.getElementById('replay-status');
     progressBar.style.width = '0%';
-    statusText.innerText = 'Preparing final 10 seconds · 720 × 1280 portrait';
+    statusText.innerText = nekoT('replay.preparing');
 
     var recordingMime = this.chooseRecordingMimeType();
     if (!recordingMime) {
-        statusText.innerText = 'This browser cannot encode a shareable video.';
+        statusText.innerText = nekoT('replay.unsupported');
         return;
     }
 
@@ -1295,7 +1767,9 @@ ReplayExporter.compile = async function (gameEngine) {
             var elapsed = now - startedAt;
             var progress = Math.min(100, Math.floor(elapsed / 100));
             progressBar.style.width = progress + '%';
-            statusText.innerText = 'Rendering final 10 seconds · ' + Math.min(10, Math.floor(elapsed / 1000)) + ' / 10';
+            statusText.innerText = nekoT('replay.rendering', {
+                seconds: Math.min(10, Math.floor(elapsed / 1000))
+            });
             if (elapsed >= 10000) {
                 if (frameIndex < frames.length) ReplayExporter.drawStateToExportCanvas(ctx, frames[frames.length - 1], gameEngine);
                 progressBar.style.width = '100%';
@@ -1329,7 +1803,7 @@ ReplayExporter.finalizeReplayUI = function (blob) {
     videoPlayer.src = videoURL;
     videoPlayer.style.aspectRatio = '9 / 16';
     videoContainer.style.display = 'block';
-    statusText.innerText = 'Final 10 seconds ready · 720 × 1280 portrait';
+    statusText.innerText = nekoT('replay.ready');
 
     btnShare.disabled = false;
     btnShare.onclick = function () { ReplayExporter.shareVideo(blob); };
@@ -1348,8 +1822,8 @@ ReplayExporter.shareVideo = function (blob) {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({
             files: [file],
-            title: 'My Neko Rogaru ending!',
-            text: 'Nine lives. No brakes. Here are my final ten seconds.'
+            title: nekoT('replay.shareTitle'),
+            text: nekoT('replay.shareText')
         }).catch(function () {});
     } else {
         document.getElementById('btn-download-video').click();
@@ -1440,18 +1914,24 @@ ReplayExporter.drawStateToExportCanvas = function (ctx, state) {
     }
 
     if (ATL_CANVASES.replayFrame.complete) ctx.drawImage(ATL_CANVASES.replayFrame, 0, 0, 720, 1280);
-    ctx.font = "20px 'Press Start 2P'";
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 20 : 24);
     ctx.fillStyle = '#fff4cf';
     ctx.textAlign = 'center';
     ctx.fillText('NEKO ROGARU', 360, 78);
-    ctx.font = "15px 'Press Start 2P'";
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 15 : 18);
     ctx.fillText(Math.floor(state.distance) + 'm', 220, 1160);
-    ctx.fillText(state.lives + ' LIVES', 360, 1160);
-    ctx.fillText((state.discoveries || 0) + ' FOUND', 510, 1160);
-    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillText(state.lives + ' ' + nekoT('hud.lives'), 360, 1160);
+    ctx.fillText((state.discoveries || 0) + ' ' + nekoT('hud.found'), 510, 1160);
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 12 : 17);
     ctx.fillStyle = '#ffdd59';
-    ctx.fillText(state.activeBiome.name.toUpperCase(), 360, 1215);
-    ctx.font = "9px 'Press Start 2P'";
+    ctx.fillText(nekoUpper(nekoBiomeName(state.activeBiome)), 360, 1215);
+    ctx.font = nekoFont(nekoCurrentLanguage() === 'en' ? 9 : 13);
     ctx.fillStyle = '#d9f2df';
-    ctx.fillText((state.timeName || 'MORNING') + ' · ' + (state.seasonName || 'SPRING') + ' · ' + (state.weatherName || 'CLEAR'), 360, 1248);
+    ctx.fillText(
+        nekoNamed('time', state.timeName || 'MORNING') + ' · ' +
+        nekoNamed('seasons', state.seasonName || 'SPRING') + ' · ' +
+        nekoNamed('weather', state.weatherName || 'CLEAR'),
+        360,
+        1248
+    );
 };

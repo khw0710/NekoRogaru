@@ -34,6 +34,11 @@
             min-height: 100vh;
             overflow: hidden;
         }
+        body.lang-ja,
+        body.lang-zh-Hant {
+            font-family: "Hiragino Sans", "Yu Gothic", "PingFang TC", "Noto Sans CJK TC", system-ui, sans-serif;
+            letter-spacing: .03em;
+        }
 
         /* Cozy Arcade Cabinet Frame */
         #cabinet {
@@ -238,6 +243,11 @@
             transition: transform 0.1s, box-shadow 0.1s;
             width: 80%;
         }
+        body.lang-ja .btn,
+        body.lang-zh-Hant .btn {
+            font-family: "Hiragino Sans", "Yu Gothic", "PingFang TC", "Noto Sans CJK TC", system-ui, sans-serif;
+            font-weight: 800;
+        }
         .btn:active {
             transform: translateY(4px);
             box-shadow: none;
@@ -246,6 +256,15 @@
         .btn-gold { background: #ff9f43; box-shadow: 0 4px 0 #f0932b; }
         .btn-teal { background: #00d2d3; box-shadow: 0 4px 0 #01a3a4; }
         .btn-small { width: auto; font-size: 8px; padding: 8px 12px; }
+        body.lang-ja .btn,
+        body.lang-zh-Hant .btn {
+            font-size: 12px;
+            line-height: 1.25;
+        }
+        body.lang-ja .btn-small,
+        body.lang-zh-Hant .btn-small {
+            font-size: 10px;
+        }
 
         /* Row Layout */
         .btn-row {
@@ -255,6 +274,30 @@
             gap: 10px;
         }
         .btn-row .btn { width: 100%; }
+
+        .language-picker {
+            width: 80%;
+            max-width: 280px;
+            margin: 2px 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 7px;
+            color: #f7e6d0;
+        }
+        .language-picker select {
+            flex: 1;
+            min-width: 0;
+            font-family: inherit;
+            font-size: 8px;
+            color: #fff4cf;
+            background: #2c1c12;
+            border: 3px solid #1c0e06;
+            border-radius: 8px;
+            padding: 8px;
+            outline: none;
+        }
 
         /* Settings grid */
         .settings-grid {
@@ -354,6 +397,11 @@
             line-height: 1.6;
             color: #d4cfc9;
         }
+        body.lang-ja .inst-list,
+        body.lang-zh-Hant .inst-list {
+            font-size: 9px;
+            line-height: 1.75;
+        }
         .inst-list li { margin-bottom: 8px; }
 
         /* Animation Keyframes */
@@ -418,7 +466,7 @@
     <div id="cabinet">
         <!-- Arcade Marquee -->
         <div id="marquee">
-            <div id="marquee-title">▼ ENDLESS TUMBLE ▼</div>
+            <div id="marquee-title" data-i18n="ui.marquee">▼ ENDLESS TUMBLE ▼</div>
         </div>
 
         <!-- Gameplay Screen -->
@@ -428,7 +476,7 @@
             <div id="time-tint"></div>
             <canvas id="hud-canvas"></canvas>
             <canvas id="mud-overlay"></canvas>
-            <div id="gesture-hint">DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU</div>
+            <div id="gesture-hint" data-i18n-html="gesture.drag">DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU</div>
             <div id="moment-toast"></div>
 
             <!-- Touch Controls Layer -->
@@ -441,97 +489,105 @@
             <div id="title-screen" class="overlay-screen active">
                 <img class="hero-cat" src="assets/generated/sprites/character/slide-neutral.png?v=20260627-cat-rollback-v1" alt="Neko Rogaru sliding cat">
                 <h1>NEKO ROGARU</h1>
-                <p>Nine Lives. No Brakes.</p>
-                <div style="font-size: 7px; color:#ffdd59; margin-bottom: 25px; line-height: 1.6;">
+                <p data-i18n="ui.subtitle">Nine Lives. No Brakes.</p>
+                <div data-i18n="ui.blurb" style="font-size: 7px; color:#ffdd59; margin-bottom: 25px; line-height: 1.6;">
                     The adorable tabby cat slides rapidly down a steep forest dirt chute on her back!
                 </div>
-                <button class="btn btn-gold" id="btn-play">START FALLING</button>
-                <button class="btn btn-teal" id="btn-view-atlases">ATLAS VIEWER</button>
-                <button class="btn btn-coral" id="btn-show-instructions">HOW TO PLAY</button>
+                <div class="language-picker">
+                    <label for="language-select" data-i18n="ui.language">LANGUAGE</label>
+                    <select id="language-select" aria-label="Language">
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="zh-Hant">繁體中文</option>
+                    </select>
+                </div>
+                <button class="btn btn-gold" id="btn-play" data-i18n="ui.start">START FALLING</button>
+                <button class="btn btn-teal" id="btn-view-atlases" data-i18n="ui.atlasButton">ATLAS VIEWER</button>
+                <button class="btn btn-coral" id="btn-show-instructions" data-i18n="ui.howToPlay">HOW TO PLAY</button>
                 
-                <div class="env-banner">
+                <div class="env-banner" data-i18n="ui.buildNote">
                     DRAG-TO-STEER BUILD · FIVE PLACES · CHANGING WEATHER
                 </div>
             </div>
 
             <!-- Screen 2: How to Play -->
             <div id="instructions-screen" class="overlay-screen">
-                <h2>HOW TO PLAY</h2>
+                <h2 data-i18n="ui.howToPlay">HOW TO PLAY</h2>
                 <ul class="inst-list">
-                    <li>▲ <b>Drag your finger</b> anywhere on the trail to steer.</li>
-                    <li>▲ Keyboard players can use <b>LEFT/RIGHT</b> or <b>A/D</b>.</li>
-                    <li>▲ Grab <b>Tuna Cans</b> and <b>Sardines</b> for points.</li>
-                    <li>▲ Dodge <b>Rocks, Logs, Brambles,</b> and <b>Cucumbers</b>!</li>
-                    <li>▲ Snatch <b>Yarn Shields</b> or <b>Feather Boosts</b>!</li>
-                    <li>▲ Catch a <b>Springy Branch</b> to rest; swipe left or right when you are ready to drop.</li>
-                    <li>▲ Logs and brambles hurt twice. The trail gets faster and busier as you fall.</li>
-                    <li>▲ Keep falling to discover rivers, caves, torii paths, seasons, and weather.</li>
+                    <li data-i18n-html="instructions.drag">▲ <b>Drag your finger</b> anywhere on the trail to steer.</li>
+                    <li data-i18n-html="instructions.keyboard">▲ Keyboard players can use <b>LEFT/RIGHT</b> or <b>A/D</b>.</li>
+                    <li data-i18n-html="instructions.pickups">▲ Grab <b>Tuna Cans</b> and <b>Sardines</b> for points.</li>
+                    <li data-i18n-html="instructions.dodge">▲ Dodge <b>Rocks, Logs, Brambles,</b> and <b>Cucumbers</b>!</li>
+                    <li data-i18n-html="instructions.powerups">▲ Snatch <b>Yarn Shields</b> or <b>Feather Boosts</b>!</li>
+                    <li data-i18n-html="instructions.branch">▲ Catch a <b>Springy Branch</b> to rest; swipe left or right when you are ready to drop.</li>
+                    <li data-i18n-html="instructions.difficulty">▲ Logs and brambles hurt twice. The trail gets faster and busier as you fall.</li>
+                    <li data-i18n-html="instructions.discovery">▲ Keep falling to discover rivers, caves, torii paths, seasons, and weather.</li>
                 </ul>
-                <button class="btn btn-gold" id="btn-instructions-back">BACK TO MENU</button>
+                <button class="btn btn-gold" id="btn-instructions-back" data-i18n="ui.backToMenu">BACK TO MENU</button>
             </div>
 
             <!-- Screen 3: Settings & Atlas Viewer -->
             <div id="atlas-viewer-screen" class="overlay-screen">
-                <h2>NEKO SPRITE ATLASES</h2>
-                <p>The production pixel-art atlases used by the game.</p>
-                <button class="btn btn-small btn-gold" id="btn-atlas-back" style="margin-bottom: 15px;">BACK TO MENU</button>
+                <h2 data-i18n="atlas.title">NEKO SPRITE ATLASES</h2>
+                <p data-i18n="atlas.description">The production pixel-art atlases used by the game.</p>
+                <button class="btn btn-small btn-gold" id="btn-atlas-back" style="margin-bottom: 15px;" data-i18n="ui.backToMenu">BACK TO MENU</button>
 
                 <div class="atlas-container">
-                    <div class="atlas-title">Cat Sprite Atlas (4x4)</div>
+                    <div class="atlas-title" data-i18n="atlas.cat">Cat Sprite Atlas (4x4)</div>
                     <div class="atlas-canvas-wrap" id="wrap-cat"></div>
                 </div>
                 <div class="atlas-container">
-                    <div class="atlas-title">Props Sprite Atlas (6x6)</div>
+                    <div class="atlas-title" data-i18n="atlas.props">Props Sprite Atlas (6x6)</div>
                     <div class="atlas-canvas-wrap" id="wrap-props"></div>
                 </div>
                 <div class="atlas-container">
-                    <div class="atlas-title">Environment Atlas (5x5)</div>
+                    <div class="atlas-title" data-i18n="atlas.environment">Environment Atlas (5x5)</div>
                     <div class="atlas-canvas-wrap" id="wrap-env"></div>
                 </div>
                 <div class="atlas-container">
-                    <div class="atlas-title">UI Elements Atlas (5x5)</div>
+                    <div class="atlas-title" data-i18n="atlas.ui">UI Elements Atlas (5x5)</div>
                     <div class="atlas-canvas-wrap" id="wrap-ui"></div>
                 </div>
                 <div class="atlas-container">
-                    <div class="atlas-title">Season & Weather (6x6)</div>
+                    <div class="atlas-title" data-i18n="atlas.weather">Season & Weather (6x6)</div>
                     <div class="atlas-canvas-wrap" id="wrap-weather"></div>
                 </div>
                 <div class="atlas-container">
-                    <div class="atlas-title">Adorable Endings Atlas (4x4)</div>
+                    <div class="atlas-title" data-i18n="atlas.endings">Adorable Endings Atlas (4x4)</div>
                     <div class="atlas-canvas-wrap" id="wrap-endings"></div>
                 </div>
             </div>
 
             <!-- Screen 4: Paused -->
             <div id="pause-screen" class="overlay-screen">
-                <h1>SLIDE PAUSED</h1>
-                <button class="btn btn-gold" id="btn-resume">RESUME</button>
-                <button class="btn btn-coral" id="btn-pause-retry">RESTART</button>
-                <button class="btn btn-teal" id="btn-pause-home">QUIT TO MENU</button>
+                <h1 data-i18n="pause.title">SLIDE PAUSED</h1>
+                <button class="btn btn-gold" id="btn-resume" data-i18n="pause.resume">RESUME</button>
+                <button class="btn btn-coral" id="btn-pause-retry" data-i18n="pause.restart">RESTART</button>
+                <button class="btn btn-teal" id="btn-pause-home" data-i18n="ui.quitToMenu">QUIT TO MENU</button>
             </div>
 
             <!-- Screen 5: Results Screen -->
             <div id="results-screen" class="overlay-screen">
-                <h1 style="color:#ff4757; font-size:20px;">SPLACK!</h1>
+                <h1 style="color:#ff4757; font-size:20px;" data-i18n="results.title">SPLACK!</h1>
                 <h2 id="ending-name" style="font-size:10px; color:#ffdd59; margin-bottom: 20px;">ENDING-MUD-SPLAT</h2>
                 <img id="ending-art" src="assets/generated/sprites/endings/ending-cardboard-box.png" alt="Funny cat ending">
                 
                 <div style="background:#2c1c12; border:4px solid #1c0e06; border-radius:10px; padding:15px; width:100%; margin-bottom:15px; text-align:left; font-size:8px; line-height:1.8;">
-                    <div style="display:flex; justify-content:space-between;"><span>SCORE:</span><span id="res-score" style="color:#ffdd59;">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>DISTANCE:</span><span id="res-dist" style="color:#00d2d3;">0m</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>CANS:</span><span id="res-cans" style="color:#10ac84;">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>DISCOVERIES:</span><span id="res-combo" style="color:#ff6b6b;">0 found</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span data-i18n="results.score">SCORE:</span><span id="res-score" style="color:#ffdd59;">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span data-i18n="results.distance">DISTANCE:</span><span id="res-dist" style="color:#00d2d3;">0m</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span data-i18n="results.cans">CANS:</span><span id="res-cans" style="color:#10ac84;">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span data-i18n="results.discoveries">DISCOVERIES:</span><span id="res-combo" style="color:#ff6b6b;">0 found</span></div>
                 </div>
 
-                <button class="btn btn-gold" id="btn-trigger-replay">GENERATE 10S REPLAY</button>
-                <button class="btn btn-teal" id="btn-results-retry">TRY AGAIN</button>
-                <button class="btn btn-coral" id="btn-results-home">QUIT TO MENU</button>
+                <button class="btn btn-gold" id="btn-trigger-replay" data-i18n="results.generateReplay">GENERATE 10S REPLAY</button>
+                <button class="btn btn-teal" id="btn-results-retry" data-i18n="results.tryAgain">TRY AGAIN</button>
+                <button class="btn btn-coral" id="btn-results-home" data-i18n="ui.quitToMenu">QUIT TO MENU</button>
             </div>
 
             <!-- Screen 6: Replay & Exporter -->
             <div id="replay-screen" class="overlay-screen">
-                <h1>COZY REPLAY STUDIO</h1>
-                <p id="replay-status">Preparing your final 10 seconds as a 720 × 1280 portrait video...</p>
+                <h1 data-i18n="replay.title">COZY REPLAY STUDIO</h1>
+                <p id="replay-status" data-i18n="replay.initial">Preparing your final 10 seconds as a 720 × 1280 portrait video...</p>
                 
                 <!-- Progress Indicator -->
                 <div id="replay-progress">
@@ -544,12 +600,12 @@
                 </div>
 
                 <div class="btn-row">
-                    <button class="btn btn-teal btn-small" id="btn-share-video" disabled>SHARE REPLAY</button>
-                    <button class="btn btn-gold btn-small" id="btn-download-video" disabled>DOWNLOAD VIDEO</button>
+                    <button class="btn btn-teal btn-small" id="btn-share-video" disabled data-i18n="replay.share">SHARE REPLAY</button>
+                    <button class="btn btn-gold btn-small" id="btn-download-video" disabled data-i18n="replay.download">DOWNLOAD VIDEO</button>
                 </div>
-                <button class="btn btn-coral btn-small" id="btn-replay-back">PLAY AGAIN</button>
+                <button class="btn btn-coral btn-small" id="btn-replay-back" data-i18n="replay.playAgain">PLAY AGAIN</button>
                 
-                <div style="font-size:6px; color:#ffdd59; margin-top:10px;">
+                <div style="font-size:6px; color:#ffdd59; margin-top:10px;" data-i18n="replay.note">
                     Supports native OS Share sheet with video format. Fallback is standard disk download.
                 </div>
             </div>
@@ -2119,6 +2175,6 @@
             });
         });
     </script>
-    <script src="game-overrides.js?v=20260627-cat-rollback-v1"></script>
+    <script src="game-overrides.js?v=20260627-i18n-v1"></script>
 </body>
 </html>
