@@ -640,9 +640,11 @@ var NEKO_MUSIC = {
     tracks: {},
     initialized: false,
     activeKey: null,
-    masterVolume: 0.3,
-    fadeSeconds: 1.8,
+    masterVolume: 0.28,
+    fadeSeconds: 3.2,
+    startFadeSeconds: 1.1,
     stopToken: 0,
+    transitionToken: 0,
 
     init: function () {
         if (this.initialized) return true;
@@ -668,56 +670,104 @@ var NEKO_MUSIC = {
         return true;
     },
 
+    resolveKey: function (timeName) {
+        return this.files[timeName] ? timeName : 'SUNSET';
+    },
+
+    playTrack: function (key, restartIfIdle) {
+        var track = this.tracks[key];
+        if (!track) return;
+        if (track.audio.paused) {
+            if (restartIfIdle) {
+                try { track.audio.currentTime = 0; } catch (error) {}
+            }
+            track.audio.play().catch(function () {});
+        }
+    },
+
+    holdGain: function (gain, now) {
+        if (gain.cancelAndHoldAtTime) {
+            try {
+                gain.cancelAndHoldAtTime(now);
+                return;
+            } catch (error) {}
+        }
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(Math.max(0, gain.value), now);
+    },
+
+    pauseInactiveTracks: function (token) {
+        var self = this;
+        Object.keys(this.tracks).forEach(function (trackKey) {
+            if (token !== self.transitionToken || trackKey === self.activeKey) return;
+            var track = self.tracks[trackKey];
+            track.gain.gain.cancelScheduledValues(SOUND.ctx.currentTime);
+            track.gain.gain.value = 0;
+            track.audio.pause();
+        });
+    },
+
     start: function (timeName, immediate) {
         if (!this.init()) return;
         this.stopToken++;
         SOUND.ctx.resume?.();
-        var wasRunning = Object.keys(this.tracks).some(function (key) {
-            return !NEKO_MUSIC.tracks[key].audio.paused;
-        });
-        Object.keys(this.tracks).forEach(function (key) {
-            var track = NEKO_MUSIC.tracks[key];
-            if (!wasRunning) {
-                try { track.audio.currentTime = 0; } catch (error) {}
-            }
-            track.audio.play().catch(function () {});
-        });
-        this.setTime(timeName || 'MORNING', immediate ? 0.08 : this.fadeSeconds);
+        var key = this.resolveKey(timeName || 'MORNING');
+        var track = this.tracks[key];
+        if (this.activeKey === key && track && !track.audio.paused) {
+            this.setTime(key, immediate ? 0.65 : this.startFadeSeconds);
+            return;
+        }
+        this.setTime(key, immediate ? 0.65 : this.startFadeSeconds, this.activeKey === null);
     },
 
-    setTime: function (timeName, fadeSeconds) {
+    setTime: function (timeName, fadeSeconds, restartIfIdle) {
         if (!this.init()) return;
-        var key = this.files[timeName] ? timeName : 'SUNSET';
-        if (this.activeKey === key && fadeSeconds === undefined) return;
-        this.activeKey = key;
-        this.stopToken++;
+        var key = this.resolveKey(timeName);
         var now = SOUND.ctx.currentTime;
-        var fade = fadeSeconds === undefined ? this.fadeSeconds : Math.max(0.03, fadeSeconds);
+        var fade = fadeSeconds === undefined ? this.fadeSeconds : Math.max(0.55, fadeSeconds);
+        var previousKey = this.activeKey;
+        var token = ++this.transitionToken;
+        this.stopToken++;
+        this.activeKey = key;
         var self = this;
+        this.playTrack(key, !!restartIfIdle);
+
         Object.keys(this.tracks).forEach(function (trackKey) {
-            var gain = self.tracks[trackKey].gain.gain;
-            var target = trackKey === key ? self.masterVolume : 0.0001;
-            gain.cancelScheduledValues(now);
-            gain.setValueAtTime(Math.max(0.0001, gain.value), now);
-            gain.exponentialRampToValueAtTime(Math.max(0.0001, target), now + fade);
+            var track = self.tracks[trackKey];
+            var gain = track.gain.gain;
+            var target = trackKey === key ? self.masterVolume : 0;
+            self.holdGain(gain, now);
+            gain.linearRampToValueAtTime(target, now + fade);
+
+            if (trackKey !== key && !track.audio.paused && trackKey !== previousKey) {
+                track.audio.pause();
+                gain.value = 0;
+            }
         });
+
+        setTimeout(function () {
+            self.pauseInactiveTracks(token);
+        }, fade * 1000 + 120);
     },
 
     stop: function (fadeSeconds) {
         if (!this.initialized || !SOUND.ctx) return;
-        var fade = fadeSeconds === undefined ? 0.7 : Math.max(0.03, fadeSeconds);
+        var fade = fadeSeconds === undefined ? 1.2 : Math.max(0.55, fadeSeconds);
         var now = SOUND.ctx.currentTime;
         var token = ++this.stopToken;
+        this.transitionToken++;
         Object.keys(this.tracks).forEach(function (key) {
             var gain = NEKO_MUSIC.tracks[key].gain.gain;
-            gain.cancelScheduledValues(now);
-            gain.setValueAtTime(Math.max(0.0001, gain.value), now);
-            gain.exponentialRampToValueAtTime(0.0001, now + fade);
+            NEKO_MUSIC.holdGain(gain, now);
+            gain.linearRampToValueAtTime(0, now + fade);
         });
         var self = this;
         setTimeout(function () {
             if (token !== self.stopToken) return;
-            Object.keys(self.tracks).forEach(function (key) { self.tracks[key].audio.pause(); });
+            Object.keys(self.tracks).forEach(function (key) {
+                self.tracks[key].gain.gain.value = 0;
+                self.tracks[key].audio.pause();
+            });
             self.activeKey = null;
         }, fade * 1000 + 80);
     }
@@ -734,7 +784,7 @@ SOUND.stopBGM = function () {
     if (this.sequencerTimer) clearTimeout(this.sequencerTimer);
     this.sequencerTimer = null;
     this.isPlaying = false;
-    NEKO_MUSIC.stop(0.7);
+    NEKO_MUSIC.stop(1.15);
 };
 
 SOUND.setBiome = function (biomeId) {
@@ -1754,7 +1804,7 @@ ReplayExporter.compile = async function (gameEngine) {
                 var state = frames[frameIndex];
                 if (state.timeName && state.timeName !== replayTimeName) {
                     replayTimeName = state.timeName;
-                    NEKO_MUSIC.setTime(replayTimeName, 0.55);
+                    NEKO_MUSIC.setTime(replayTimeName, 2.2);
                 }
                 ReplayExporter.drawStateToExportCanvas(ctx, state, gameEngine);
                 while (audioIndex < replayEvents.length && replayEvents[audioIndex].timeMs <= state.timeOffset) {
@@ -1781,7 +1831,7 @@ ReplayExporter.compile = async function (gameEngine) {
         drawNextFrame();
     });
 
-    NEKO_MUSIC.stop(0.12);
+    NEKO_MUSIC.stop(0.65);
     recorder.stop();
     await stopped;
     combinedStream.getTracks().forEach(function (track) { track.stop(); });

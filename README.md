@@ -22,6 +22,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Full 16-pose cat reaction set, including bumps, sneezes, branch catches, tumbles, and celebrations
 - Independent morning/noon/sunset/night, season-ensemble, and weather cycles
 - Adaptive MP3 soundtrack with morning, noon, sunset, and night crossfades
+- Single-active-track music manager that pauses faded-out background tracks
 - Timestamped final-ten-second 720×1280 replay export at the end of each run
 - Static visual preview page
 
