@@ -17,7 +17,11 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Playable portrait Three.js prototype with drag/touch steering
 - Five cycling biomes plus time, weather, and seasonal variations
 - Nine-life encounter system, discoveries, pickups, hazards, and cute endings
-- Ten-second vertical WebM replay export at the end of each run
+- Catchable branch rest stops with swipe-to-release interaction
+- Full 16-pose cat reaction set, including bumps, sneezes, tumbles, and celebrations
+- Independent morning/noon/sunset/night, season-ensemble, and weather cycles
+- Adaptive MP3 soundtrack with morning, noon, sunset, and night crossfades
+- Timestamped final-ten-second 720×1280 replay export at the end of each run
 - Static visual preview page
 
 ## Start here
@@ -27,6 +31,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - [`asset-preview.html`](asset-preview.html) — visual asset board
 - [`GAME-REQUIREMENTS.md`](GAME-REQUIREMENTS.md) — consolidated product specification
 - [`VIDEO-EXPORT-SPEC.md`](VIDEO-EXPORT-SPEC.md) — ten-second Canvas replay architecture
+- [`MUSIC-PROMPTS.md`](MUSIC-PROMPTS.md) — gameplay loop, time-of-day arrangement, and interaction-cue prompts
 - [`ASSET-GUIDE.md`](ASSET-GUIDE.md) — art direction and discovery system
 - [`assets/generated/manifest.json`](assets/generated/manifest.json) — asset paths and sprite IDs
 - [`GENERATION-PROMPTS.md`](GENERATION-PROMPTS.md) — image-generation specifications

@@ -8,6 +8,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Google Font for cozy retro feel -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="preload" href="assets/generated/audio/main.mp3" as="audio" type="audio/mpeg">
+    <link rel="preload" href="assets/generated/audio/morning.mp3" as="audio" type="audio/mpeg">
+    <link rel="preload" href="assets/generated/audio/noon.mp3" as="audio" type="audio/mpeg">
+    <link rel="preload" href="assets/generated/audio/night.mp3" as="audio" type="audio/mpeg">
     <style>
         * {
             box-sizing: border-box;
@@ -128,11 +132,7 @@
             pointer-events: none;
         }
         #weather-layer {
-            z-index: 2;
-            object-fit: cover;
-            opacity: 0;
-            image-rendering: pixelated;
-            transition: opacity 1.2s ease;
+            display: none;
         }
         #time-tint {
             z-index: 2;
@@ -329,15 +329,14 @@
             transition: width 0.1s linear;
         }
         #video-container {
-            width: 100%;
+            width: min(72%, 240px);
             aspect-ratio: 9/16;
-            max-height: 350px;
             background: #1c0e06;
             border: 6px solid #ff9f43;
             border-radius: 12px;
             overflow: hidden;
             position: relative;
-            margin-bottom: 15px;
+            margin: 0 auto 15px;
             display: none;
         }
         #video-player {
@@ -464,6 +463,8 @@
                     <li>▲ Grab <b>Tuna Cans</b> and <b>Sardines</b> for points.</li>
                     <li>▲ Dodge <b>Rocks, Logs, Brambles,</b> and <b>Cucumbers</b>!</li>
                     <li>▲ Snatch <b>Yarn Shields</b> or <b>Feather Boosts</b>!</li>
+                    <li>▲ Catch a <b>Springy Branch</b> to rest; swipe left or right when you are ready to drop.</li>
+                    <li>▲ Logs and brambles hurt twice. The trail gets faster and busier as you fall.</li>
                     <li>▲ Keep falling to discover rivers, caves, torii paths, seasons, and weather.</li>
                 </ul>
                 <button class="btn btn-gold" id="btn-instructions-back">BACK TO MENU</button>
@@ -530,7 +531,7 @@
             <!-- Screen 6: Replay & Exporter -->
             <div id="replay-screen" class="overlay-screen">
                 <h1>COZY REPLAY STUDIO</h1>
-                <p id="replay-status">Encoding your last 10 seconds of rapid sliding, adorable crashes, and dynamic HUD...</p>
+                <p id="replay-status">Preparing your final 10 seconds as a 720 × 1280 portrait video...</p>
                 
                 <!-- Progress Indicator -->
                 <div id="replay-progress">
