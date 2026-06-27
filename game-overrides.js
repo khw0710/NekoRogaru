@@ -2,7 +2,7 @@
  * Keeps the Gemini Three.js skeleton while replacing its procedural placeholders.
  */
 
-var NEKO_ASSET_VERSION = '20260627-art-v2';
+var NEKO_ASSET_VERSION = '20260627-cat-rollback-v1';
 
 var NEKO_ASSETS = {
     atlases: {

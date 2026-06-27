@@ -18,7 +18,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Five cycling biomes plus time, weather, and seasonal variations
 - Nine-life encounter system, discoveries, pickups, hazards, and cute endings
 - Catchable branch rest stops with swipe-to-release interaction
-- Refreshed v2 16-pose cat reaction set, including bumps, sneezes, branch catches, tumbles, and celebrations
+- Full 16-pose cat reaction set, including bumps, sneezes, branch catches, tumbles, and celebrations
 - Independent morning/noon/sunset/night, season-ensemble, and weather cycles
 - Adaptive MP3 soundtrack with morning, noon, sunset, and night crossfades
 - Timestamped final-ten-second 720×1280 replay export at the end of each run
@@ -31,6 +31,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - [`asset-preview.html`](asset-preview.html) — visual asset board
 - [`GAME-REQUIREMENTS.md`](GAME-REQUIREMENTS.md) — consolidated product specification
 - [`VIDEO-EXPORT-SPEC.md`](VIDEO-EXPORT-SPEC.md) — ten-second Canvas replay architecture
+- [`DEPLOYMENT.md`](DEPLOYMENT.md) — static hosting, iframe, and interactivity requirements
 - [`MUSIC-PROMPTS.md`](MUSIC-PROMPTS.md) — gameplay loop, time-of-day arrangement, and interaction-cue prompts
 - [`ASSET-GUIDE.md`](ASSET-GUIDE.md) — art direction and discovery system
 - [`assets/generated/manifest.json`](assets/generated/manifest.json) — asset paths and sprite IDs
@@ -44,7 +45,9 @@ The repository now contains a first playable engine integration. Open it through
 python3 -m http.server 4173
 ```
 
-Then visit `http://localhost:4173/`. Drag the cat horizontally with a finger or pointer; arrow keys and A/D remain as desktop fallbacks.
+Then visit `http://localhost:4173/`. Drag the cat horizontally with a finger or pointer after pressing play; arrow keys and A/D remain as desktop fallbacks.
+
+If the game is deployed to another static host or embedded in another site, read [`DEPLOYMENT.md`](DEPLOYMENT.md). The game needs the full `assets/` folder, JavaScript enabled, Three.js allowed from cdnjs, and a non-sandboxed or correctly permissioned iframe to remain interactive.
 
 This is an art-and-interaction prototype, not final game balancing. The next pass should focus on encounter pacing, biome-specific spawn tables, animation polish, mobile performance, audio, and cross-browser replay export testing.
 
