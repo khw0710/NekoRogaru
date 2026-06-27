@@ -18,7 +18,7 @@ The player steers a tabby through an endless sequence of forests, rivers, shrine
 - Five cycling biomes plus time, weather, and seasonal variations
 - Nine-life encounter system, discoveries, pickups, hazards, and cute endings
 - Catchable branch rest stops with swipe-to-release interaction
-- Full 16-pose cat reaction set, including bumps, sneezes, tumbles, and celebrations
+- Refreshed v2 16-pose cat reaction set, including bumps, sneezes, branch catches, tumbles, and celebrations
 - Independent morning/noon/sunset/night, season-ensemble, and weather cycles
 - Adaptive MP3 soundtrack with morning, noon, sunset, and night crossfades
 - Timestamped final-ten-second 720×1280 replay export at the end of each run
@@ -50,7 +50,11 @@ This is an art-and-interaction prototype, not final game balancing. The next pas
 
 ## Asset utilities
 
-Run `scripts/slice_atlases.py` with Python and Pillow to regenerate individual sprites from the transparent atlases.
+Run `scripts/slice_atlases.py` with Python and Pillow to regenerate individual sprites from the transparent atlases. You can regenerate everything, or pass one or more atlas groups:
+
+```sh
+python3 scripts/slice_atlases.py character
+```
 
 ## Publishing note
 

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Slice the generated transparent atlases into consistently sized PNG cells."""
+"""Slice generated transparent atlases into consistently sized PNG cells.
+
+Usage:
+    python scripts/slice_atlases.py
+    python scripts/slice_atlases.py character
+    python scripts/slice_atlases.py character props
+"""
+
+import sys
 
 from pathlib import Path
 
@@ -101,5 +109,11 @@ def slice_atlas(group: str, config: dict) -> None:
 
 
 if __name__ == "__main__":
-    for atlas_group, atlas_config in ATLASES.items():
-        slice_atlas(atlas_group, atlas_config)
+    requested_groups = sys.argv[1:] or list(ATLASES)
+    unknown_groups = sorted(set(requested_groups) - set(ATLASES))
+    if unknown_groups:
+        known = ", ".join(ATLASES)
+        raise SystemExit(f"Unknown atlas group(s): {', '.join(unknown_groups)}. Known groups: {known}")
+
+    for atlas_group in requested_groups:
+        slice_atlas(atlas_group, ATLASES[atlas_group])

@@ -2,6 +2,8 @@
  * Keeps the Gemini Three.js skeleton while replacing its procedural placeholders.
  */
 
+var NEKO_ASSET_VERSION = '20260627-art-v2';
+
 var NEKO_ASSETS = {
     atlases: {
         character: 'assets/generated/atlases/cat-atlas.png',
@@ -64,21 +66,26 @@ var NEKO_ASSETS = {
 var NEKO_IMAGES = { backgrounds: {}, characters: {}, props: {}, endings: {}, weather: {} };
 var NEKO_TEXTURES = new Map();
 
+function nekoVersioned(src) {
+    return src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=' + NEKO_ASSET_VERSION;
+}
+
 function nekoImage(src) {
     var image = new Image();
     image.decoding = 'async';
-    image.src = src;
+    image.src = nekoVersioned(src);
     return image;
 }
 
 function nekoTexture(src, nearest) {
-    if (NEKO_TEXTURES.has(src)) return NEKO_TEXTURES.get(src);
-    var texture = new THREE.TextureLoader().load(src);
+    var versionedSrc = nekoVersioned(src);
+    if (NEKO_TEXTURES.has(versionedSrc)) return NEKO_TEXTURES.get(versionedSrc);
+    var texture = new THREE.TextureLoader().load(versionedSrc);
     texture.minFilter = nearest ? THREE.NearestFilter : THREE.LinearFilter;
     texture.magFilter = nearest ? THREE.NearestFilter : THREE.LinearFilter;
     texture.generateMipmaps = false;
     if (THREE.sRGBEncoding) texture.encoding = THREE.sRGBEncoding;
-    NEKO_TEXTURES.set(src, texture);
+    NEKO_TEXTURES.set(versionedSrc, texture);
     return texture;
 }
 
