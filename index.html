@@ -252,6 +252,13 @@
             transform: translateY(4px);
             box-shadow: none;
         }
+        .btn:disabled {
+            cursor: wait;
+            filter: grayscale(.35);
+            opacity: .58;
+            transform: none;
+            box-shadow: 0 4px 0 rgba(28,14,6,.55);
+        }
         .btn-coral { background: #ff6b6b; box-shadow: 0 4px 0 #ee5253; }
         .btn-gold { background: #ff9f43; box-shadow: 0 4px 0 #f0932b; }
         .btn-teal { background: #00d2d3; box-shadow: 0 4px 0 #01a3a4; }
@@ -297,6 +304,41 @@
             border-radius: 8px;
             padding: 8px;
             outline: none;
+        }
+        .loading-panel {
+            width: 80%;
+            max-width: 310px;
+            margin: 0 0 12px;
+            padding: 10px;
+            background: rgba(28, 14, 6, .54);
+            border: 3px solid #3e281c;
+            border-radius: 10px;
+            color: #fff4cf;
+            font-size: 7px;
+            line-height: 1.6;
+        }
+        .loading-panel.ready {
+            border-color: #10ac84;
+        }
+        .loading-panel.error {
+            border-color: #ff6b6b;
+        }
+        .loading-track {
+            height: 10px;
+            margin: 7px 0;
+            background: #1c0e06;
+            border: 2px solid #23140b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        #loading-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #10ac84, #ffdd59);
+            transition: width .18s ease-out;
+        }
+        #loading-status {
+            color: #ffdd59;
         }
 
         /* Settings grid */
@@ -501,7 +543,14 @@
                         <option value="zh-Hant">繁體中文</option>
                     </select>
                 </div>
-                <button class="btn btn-gold" id="btn-play" data-i18n="ui.start">START FALLING</button>
+                <div class="loading-panel" id="loading-panel" aria-live="polite">
+                    <div id="loading-label" data-i18n="loading.title">WARMING UP THE FOREST...</div>
+                    <div class="loading-track">
+                        <div id="loading-bar"></div>
+                    </div>
+                    <div id="loading-status">0%</div>
+                </div>
+                <button class="btn btn-gold" id="btn-play" data-i18n="ui.start" disabled aria-disabled="true">START FALLING</button>
                 <button class="btn btn-teal" id="btn-view-atlases" data-i18n="ui.atlasButton">ATLAS VIEWER</button>
                 <button class="btn btn-coral" id="btn-show-instructions" data-i18n="ui.howToPlay">HOW TO PLAY</button>
                 
@@ -2175,6 +2224,6 @@
             });
         });
     </script>
-    <script src="game-overrides.js?v=20260627-music-v1"></script>
+    <script src="game-overrides.js?v=20260629-loader-v1"></script>
 </body>
 </html>

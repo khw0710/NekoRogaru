@@ -130,6 +130,12 @@ var NEKO_TRANSLATIONS = {
             shareTitle: 'My Neko Rogaru ending!',
             shareText: 'Nine lives. No brakes. Here are my final ten seconds.'
         },
+        loading: {
+            title: 'WARMING UP THE FOREST...',
+            progress: 'Loading art {percent}%',
+            ready: 'Ready! Tap start when you are ready to tumble.',
+            failed: 'Some art could not load. Refresh if the scene looks empty.'
+        },
         gesture: {
             drag: 'DRAG YOUR FINGER<br>THE WORLD FALLS PAST YOU',
             branch: 'BRANCH BREAK!<br>SWIPE LEFT OR RIGHT TO LET GO'
@@ -249,6 +255,12 @@ var NEKO_TRANSLATIONS = {
             shareTitle: 'ネコロガルの結末！',
             shareText: '九つの命。ブレーキなし。最後の10秒です。'
         },
+        loading: {
+            title: '森を準備中...',
+            progress: 'アート読み込み中 {percent}%',
+            ready: '準備完了！スタートでころがれます。',
+            failed: '一部のアートを読み込めませんでした。画面が空なら再読み込みしてください。'
+        },
         gesture: {
             drag: '指でドラッグ<br>世界が上へ流れていく',
             branch: '枝がしなる！<br>左右にスワイプして手を離す'
@@ -367,6 +379,12 @@ var NEKO_TRANSLATIONS = {
             noTumble: '還沒有滾落紀錄！請先玩一場。',
             shareTitle: '我的 Neko Rogaru 結局！',
             shareText: '九條命。沒有煞車。這是我的最後10秒。'
+        },
+        loading: {
+            title: '正在準備森林...',
+            progress: '載入美術素材 {percent}%',
+            ready: '準備好了！按開始就可以滾落。',
+            failed: '部分美術素材無法載入。如果畫面空白，請重新整理。'
         },
         gesture: {
             drag: '拖曳手指<br>世界會從身邊往上流過',
@@ -489,6 +507,7 @@ function nekoApplyStaticTranslations() {
         select.value = lang;
         select.setAttribute('aria-label', nekoT('ui.language'));
     }
+    if (window.NEKO_LOADER && window.NEKO_LOADER.updateUI) window.NEKO_LOADER.updateUI();
 }
 
 function nekoSetLanguage(lang) {
@@ -552,6 +571,123 @@ function nekoTexture(src, nearest) {
     return texture;
 }
 
+var NEKO_LOADER = {
+    started: false,
+    ready: false,
+    failed: false,
+    loaded: 0,
+    total: 0,
+    failures: [],
+    promise: null,
+
+    collectImageSources: function () {
+        var sources = [];
+        function add(src) {
+            if (src && !sources.includes(src)) sources.push(src);
+        }
+
+        Object.keys(NEKO_ASSETS.atlases).forEach(function (key) { add(NEKO_ASSETS.atlases[key]); });
+        add(NEKO_ASSETS.replayFrame);
+        Object.keys(NEKO_ASSETS.backgrounds).forEach(function (key) { add(NEKO_ASSETS.backgrounds[key]); });
+        Object.keys(NEKO_ASSETS.characters).forEach(function (key) { add(NEKO_ASSETS.characters[key]); });
+        Object.keys(NEKO_ASSETS.props).forEach(function (key) { add(NEKO_ASSETS.props[key]); });
+        Object.keys(NEKO_ASSETS.endings).forEach(function (key) { add(NEKO_ASSETS.endings[key]); });
+
+        NEKO_SEASONS.concat(NEKO_WEATHERS, [NEKO_SNOW_WEATHER]).forEach(function (condition) {
+            condition.sprites.forEach(function (id) {
+                add('assets/generated/sprites/season-weather/' + id + '.png');
+            });
+        });
+
+        return sources;
+    },
+
+    setStartEnabled: function (enabled) {
+        var button = document.getElementById('btn-play');
+        if (!button) return;
+        button.disabled = !enabled;
+        button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    },
+
+    updateUI: function () {
+        var panel = document.getElementById('loading-panel');
+        var bar = document.getElementById('loading-bar');
+        var status = document.getElementById('loading-status');
+        if (!panel || !bar || !status) return;
+
+        var percent = this.total ? Math.round((this.loaded / this.total) * 100) : 0;
+        bar.style.width = percent + '%';
+        panel.classList.toggle('ready', this.ready && !this.failed);
+        panel.classList.toggle('error', this.failed);
+        if (this.ready && !this.failed) {
+            status.textContent = nekoT('loading.ready');
+        } else if (this.failed) {
+            status.textContent = nekoT('loading.failed');
+        } else {
+            status.textContent = nekoT('loading.progress', { percent: percent });
+        }
+    },
+
+    loadImage: function (src) {
+        var self = this;
+        return new Promise(function (resolve) {
+            var image = new Image();
+            var done = false;
+            var timeout = setTimeout(function () { finish(false); }, 15000);
+            function finish(ok) {
+                if (done) return;
+                done = true;
+                clearTimeout(timeout);
+                self.loaded += 1;
+                if (!ok) self.failures.push(src);
+                self.updateUI();
+                resolve({ src: src, ok: ok });
+            }
+            image.decoding = 'async';
+            image.onload = function () {
+                if (image.decode) {
+                    image.decode().then(function () { finish(true); }).catch(function () { finish(true); });
+                } else {
+                    finish(true);
+                }
+            };
+            image.onerror = function () { finish(false); };
+            image.src = nekoVersioned(src);
+            if (image.complete && image.naturalWidth > 0) finish(true);
+        });
+    },
+
+    start: function () {
+        if (this.promise) return this.promise;
+        this.started = true;
+        this.ready = false;
+        this.failed = false;
+        this.loaded = 0;
+        this.failures = [];
+        this.setStartEnabled(false);
+        var self = this;
+        var sources = this.collectImageSources();
+        this.total = sources.length;
+        this.updateUI();
+        this.promise = Promise.all(sources.map(function (src) { return self.loadImage(src); }))
+            .then(function (results) {
+                self.failed = results.some(function (result) { return !result.ok; });
+                return new Promise(function (resolve) {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            self.ready = true;
+                            self.setStartEnabled(true);
+                            self.updateUI();
+                            resolve(results);
+                        });
+                    });
+                });
+            });
+        return this.promise;
+    }
+};
+window.NEKO_LOADER = NEKO_LOADER;
+
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
@@ -587,6 +723,7 @@ PixelArtEngine.init = function () {
     });
 
     this.renderToDOMViewer();
+    NEKO_LOADER.start();
 };
 
 var NEKO_BIOME_ORDER = [
@@ -975,6 +1112,13 @@ GameEngine.prototype.setupInput = function () {
 };
 
 GameEngine.prototype.resetGame = function () {
+    if (!NEKO_LOADER.ready) {
+        if (typeof showScreen === 'function') showScreen('title-screen');
+        NEKO_LOADER.start();
+        NEKO_LOADER.updateUI();
+        return;
+    }
+
     var previousEntities = (this.entities || []).slice();
     previousEntities.forEach(function (entity) {
         if (entity.halo) {
